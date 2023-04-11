@@ -1,0 +1,22 @@
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%level] %-50logger{15} %d{HH:mm:ss.SSS}\t-\t%msg%n</pattern>
+            <highlight class="java.lang.RuntimeException"
+                       level="ERROR"
+                       foreground="RED"
+                       background="YELLOW" />
+            <highlight level="WARN"
+                       foreground="YELLOW"
+                       background="BLACK" />
+            <highlight level="INFO"
+                       foreground="GREEN" />
+            <highlight level="DEBUG"
+                       foreground="CYAN" />
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>
