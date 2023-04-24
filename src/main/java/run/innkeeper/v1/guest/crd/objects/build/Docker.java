@@ -7,6 +7,14 @@ public class Docker {
     String dockerfile;
     String workdir;
 
+    public Docker(Docker old) {
+        this.dockerfile = old.dockerfile;
+        this.workdir = old.workdir;
+    }
+
+    public Docker() {
+    }
+
     public String getDockerfile() {
         return dockerfile;
     }

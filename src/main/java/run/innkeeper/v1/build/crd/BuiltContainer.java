@@ -1,35 +1,38 @@
 package run.innkeeper.v1.build.crd;
 
-public class BuiltContainer {
-    String tag;
-    String commit;
-    String registry;
+import run.innkeeper.v1.guest.crd.objects.build.Docker;
+import run.innkeeper.v1.guest.crd.objects.build.GitSource;
+import run.innkeeper.v1.guest.crd.objects.build.Publish;
 
+public class BuiltContainer {
     String jobName;
     String namespace;
+    GitSource gitSource;
+    Publish publish;
+    Docker docker;
 
-    public String getTag() {
-        return tag;
+    public GitSource getGitSource() {
+        return gitSource;
     }
 
-    public void setTag(String tag) {
-        this.tag = tag;
+    public void setGitSource(GitSource gitSource) {
+        this.gitSource = gitSource;
     }
 
-    public String getCommit() {
-        return commit;
+    public Publish getPublish() {
+        return publish;
     }
 
-    public void setCommit(String commit) {
-        this.commit = commit;
+    public void setPublish(Publish publish) {
+        this.publish = publish;
     }
 
-    public String getRegistry() {
-        return registry;
+    public Docker getDocker() {
+        return docker;
     }
 
-    public void setRegistry(String registry) {
-        this.registry = registry;
+    public void setDocker(Docker docker) {
+        this.docker = docker;
     }
 
     public String getJobName() {

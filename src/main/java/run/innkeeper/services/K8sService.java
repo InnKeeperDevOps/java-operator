@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.build.crd.Build;
+import run.innkeeper.v1.deployment.crd.Deployment;
 import run.innkeeper.v1.guest.crd.Guest;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Namespace;
@@ -28,6 +29,10 @@ public class K8sService {
         return singleton;
     }
 
+    public KubernetesClient getClient(){
+        return client;
+    }
+
     public List<Namespace> getAllNamespaces(){
         return this.client.namespaces().list().getItems();
     }
@@ -47,6 +52,7 @@ public class K8sService {
     static Map<String, CRDObject> crds = new HashMap<>(){{
         put("guests.cicd.innkeeper.run", new CRDObject(Guest.class, "META-INF/fabric8/guests.cicd.innkeeper.run-v1.yml"));
         put("builds.cicd.innkeeper.run", new CRDObject(Build.class, "META-INF/fabric8/builds.cicd.innkeeper.run-v1.yml"));
+        put("deployments.cicd.innkeeper.run", new CRDObject(Deployment.class, "META-INF/fabric8/deployments.cicd.innkeeper.run-v1.yml"));
     }};
 
     public CustomResourceDefinition loadCRDFromFile(String crdFileDefYaml){
@@ -130,6 +136,28 @@ public class K8sService {
     public Build getBuildByNamespaceAndName(Build build) {
         return getBuildClient().inNamespace(build.getMetadata().getNamespace()).resource(build).get();
     }
+    public Build getBuildByNamespaceAndName(String namespace, String name) {
+        Build build = new Build();
+        build.setMetaData(namespace, name);
+        return getBuildClient().inNamespace(namespace).resource(build).get();
+    }
+
+    public MixedOperation<Deployment, KubernetesResourceList<Deployment>, Resource<Deployment>> getDeploymentClient(){
+        return client.resources(Deployment.class);
+    }
+    public void createDeployment(Deployment deployment){
+        getDeploymentClient().inNamespace(deployment.getMetadata().getNamespace()).resource(deployment).create();
+    }
+
+    public Deployment getDeploymentByNamespaceAndName(Deployment deployment) {
+        return getDeploymentClient().inNamespace(deployment.getMetadata().getNamespace()).resource(deployment).get();
+    }
+    public Deployment getDeploymentByNamespaceAndName(String namespace, String name) {
+        Deployment deployment = new Deployment();
+        deployment.setMetaData(namespace, name);
+        return getDeploymentClient().inNamespace(namespace).resource(deployment).get();
+    }
+
 
 
 }

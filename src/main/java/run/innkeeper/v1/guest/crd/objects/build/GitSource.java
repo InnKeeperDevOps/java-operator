@@ -10,6 +10,16 @@ public class GitSource {
     String commit;
     String branch;
 
+    public GitSource(GitSource old) {
+        this.secret = old.secret;
+        this.commit = old.commit;
+        this.branch = old.branch;
+        this.uri = old.uri;
+    }
+
+    public GitSource() {
+    }
+
     public String getUri() {
         return uri;
     }

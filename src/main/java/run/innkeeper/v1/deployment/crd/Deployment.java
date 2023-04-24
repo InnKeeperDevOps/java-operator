@@ -1,4 +1,4 @@
-package run.innkeeper.v1.build.crd;
+package run.innkeeper.v1.deployment.crd;
 
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -10,13 +10,14 @@ import run.innkeeper.utilities.HashGenerator;
 
 @Group("cicd.innkeeper.run")
 @Version("v1")
-@ShortNames("build")
-public class Build extends CustomResource<BuildSpec, BuildStatus> implements Namespaced {
+@ShortNames("dp")
+public class Deployment extends CustomResource<DeploymentSpec, DeploymentStatus> implements
+    Namespaced {
+
     public void setMetaData(String namespace, String name){
         ObjectMeta om = new ObjectMeta();
         om.setNamespace(namespace);
         om.setName(name);
         this.setMetadata(om);
     }
-
 }

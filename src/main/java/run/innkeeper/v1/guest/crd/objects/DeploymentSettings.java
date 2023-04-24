@@ -6,41 +6,17 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 
+import java.util.List;
+
 public class DeploymentSettings {
-    EnvVar[] env;
-    VolumeMount[] mounts;
-    Volume[] volumes;
+    List<Volume> volumes;
     @Required
     String namespace;
     @Required
     String name;
-
+    int replicas;
     @Required
-    Container[] containers;
-
-    public EnvVar[] getEnv() {
-        return env;
-    }
-
-    public void setEnv(EnvVar[] env) {
-        this.env = env;
-    }
-
-    public VolumeMount[] getMounts() {
-        return mounts;
-    }
-
-    public void setMounts(VolumeMount[] mounts) {
-        this.mounts = mounts;
-    }
-
-    public Volume[] getVolumes() {
-        return volumes;
-    }
-
-    public void setVolumes(Volume[] volumes) {
-        this.volumes = volumes;
-    }
+    List<Container> containers;
 
     public String getNamespace() {
         return namespace;
@@ -58,11 +34,27 @@ public class DeploymentSettings {
         this.name = name;
     }
 
-    public Container[] getContainers() {
+    public List<Volume> getVolumes() {
+        return volumes;
+    }
+
+    public void setVolumes(List<Volume> volumes) {
+        this.volumes = volumes;
+    }
+
+    public List<Container> getContainers() {
         return containers;
     }
 
-    public void setContainers(Container[] containers) {
+    public void setContainers(List<Container> containers) {
         this.containers = containers;
+    }
+
+    public int getReplicas() {
+        return replicas;
+    }
+
+    public void setReplicas(int replicas) {
+        this.replicas = replicas;
     }
 }

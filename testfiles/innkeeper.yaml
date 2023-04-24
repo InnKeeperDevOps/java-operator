@@ -27,12 +27,16 @@ spec:
   deployments:
     - name: innkeeper-site
       namespace: innkeeper
+      replicas: 1
       containers:
         - buildName: backend
+          name: backend
     - name: example-site
       namespace: innkeeper
+      replicas: 1
       containers:
         - buildName: example
+          name: example
   services:
     - name: innkeeper-www
       deployment: innkeeper-site

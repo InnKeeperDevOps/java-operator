@@ -5,6 +5,7 @@ import run.innkeeper.events.server.ServerStarted;
 import run.innkeeper.events.structure.Trigger;
 import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.build.BuildReconciler;
+import run.innkeeper.v1.deployment.DeploymentReconciler;
 import run.innkeeper.v1.guest.GuestReconciler;
 
 public class ServerController {
@@ -15,6 +16,7 @@ public class ServerController {
             Operator operator = new Operator();
             operator.register(new GuestReconciler());
             operator.register(new BuildReconciler());
+            operator.register(new DeploymentReconciler());
             operator.start();
         }).start();
     }

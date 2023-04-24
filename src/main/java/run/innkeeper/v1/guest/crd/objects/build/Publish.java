@@ -10,6 +10,15 @@ public class Publish {
     @Required
     String tag;
 
+    public Publish(Publish old) {
+        this.secret = old.secret;
+        this.registry = old.registry;
+        this.tag = old.tag;
+    }
+
+    public Publish() {
+    }
+
     public String getSecret() {
         return secret;
     }

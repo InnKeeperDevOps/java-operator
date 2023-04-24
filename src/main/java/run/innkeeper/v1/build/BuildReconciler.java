@@ -13,9 +13,7 @@ import run.innkeeper.v1.build.crd.BuildStatus;
 
 import java.util.concurrent.TimeUnit;
 
-@ControllerConfiguration(maxReconciliationInterval = @MaxReconciliationInterval(
-    interval = 15,
-    timeUnit = TimeUnit.SECONDS))
+@ControllerConfiguration()
 public class BuildReconciler implements Reconciler<Build> {
 
     EventBus eventBus = EventBus.get();
@@ -30,11 +28,14 @@ public class BuildReconciler implements Reconciler<Build> {
                 case WAITING -> eventBus.fire(new CheckGitBuild(build));
                 case BUILDING -> eventBus.fire(new MonitorBuild(build));
                 case GIT_CHECK -> eventBus.fire(new MonitorGit(build));
-                case NEED_TO_BUILD -> EventBus.get().fire(new StartBuild(build));
+                case NEED_TO_BUILD -> eventBus.get().fire(new StartBuild(build));
             }
         }
-        return UpdateControl.patchStatus(build);
+        return UpdateControl.patchStatus(build).rescheduleAfter(3, TimeUnit.SECONDS);
     }
     // Return the changed resource, so it gets updated. See javadoc for details.
 
+    public DeleteControl cleanup(Build build, Context<Build> context){
+        return DeleteControl.defaultDelete();
+    }
 }

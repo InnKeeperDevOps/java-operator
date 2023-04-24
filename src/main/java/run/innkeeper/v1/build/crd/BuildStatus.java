@@ -1,8 +1,10 @@
 package run.innkeeper.v1.build.crd;
 
+import java.util.List;
+
 public class BuildStatus {
     String jobName;
-    BuiltContainer[] completed;
+    List<BuiltContainer> completed;
 
     BuildState state;
 
@@ -14,11 +16,11 @@ public class BuildStatus {
         this.jobName = jobName;
     }
 
-    public BuiltContainer[] getCompleted() {
+    public List<BuiltContainer> getCompleted() {
         return completed;
     }
 
-    public void setCompleted(BuiltContainer[] completed) {
+    public void setCompleted(List<BuiltContainer> completed) {
         this.completed = completed;
     }
 
