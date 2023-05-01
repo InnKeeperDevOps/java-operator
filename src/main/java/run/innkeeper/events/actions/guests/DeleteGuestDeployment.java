@@ -4,10 +4,10 @@ import run.innkeeper.events.structure.GuestEvent;
 import run.innkeeper.v1.guest.crd.Guest;
 import run.innkeeper.v1.guest.crd.objects.DeploymentSettings;
 
-public class DeleteGuestDeploymentChanges extends GuestEvent {
+public class DeleteGuestDeployment extends GuestEvent {
     DeploymentSettings deploymentSettings;
 
-    public DeleteGuestDeploymentChanges(Guest guest, DeploymentSettings deploymentSettings) {
+    public DeleteGuestDeployment(Guest guest, DeploymentSettings deploymentSettings) {
         super(guest);
         this.deploymentSettings = deploymentSettings;
     }

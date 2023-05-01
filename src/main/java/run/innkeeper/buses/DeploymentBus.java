@@ -59,9 +59,12 @@ public class DeploymentBus {
     }
 
     public String getImage(Build build) {
-        List<BuiltContainer> builtContainers = build.getStatus().getCompleted();
-        Publish publish = build.getSpec().getBuildSettings().getPublish();
-        return publish.getRegistry() + "/" + publish.getTag() + ":" + builtContainers.get(builtContainers.size() - 1).getGitSource().getCommit();
+        if(build.getStatus()!=null) {
+            List<BuiltContainer> builtContainers = build.getStatus().getCompleted();
+            Publish publish = build.getSpec().getBuildSettings().getPublish();
+            return publish.getRegistry() + "/" + publish.getTag() + ":" + builtContainers.get(builtContainers.size() - 1).getGitSource().getCommit();
+        }
+        return null;
     }
 
     public Container getContainer(run.innkeeper.v1.guest.crd.objects.deployment.Container containerSettings, Build build) {
@@ -148,6 +151,22 @@ public class DeploymentBus {
     public Deployment updateDeployment(DeploymentSettings deploymentSettings, Map<String, Build> builds) {
         Deployment deployment = buildDeployment(deploymentSettings, builds);
         return k8sService.getClient().resource(deployment).patch();
+    }
+
+    public void deleteDeployment(DeploymentSettings deploymentSettings) {
+        k8sService
+            .getClient()
+            .apps()
+            .deployments()
+            .resource(
+                new DeploymentBuilder()
+                    .withNewMetadata()
+                    .withName(deploymentSettings.getName())
+                    .withNamespace(deploymentSettings.getNamespace())
+                    .endMetadata()
+                    .build()
+            )
+            .delete();
     }
 
     private Deployment buildDeployment(DeploymentSettings deploymentSettings, Map<String, Build> builds) {

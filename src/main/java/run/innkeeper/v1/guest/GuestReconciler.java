@@ -8,15 +8,14 @@ import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.DeleteControl;
 import run.innkeeper.buses.EventBus;
-import run.innkeeper.events.actions.guests.CheckGuestBuildChanges;
-import run.innkeeper.events.actions.guests.CheckGuestDeploymentChanges;
+import run.innkeeper.events.actions.guests.*;
 import run.innkeeper.utilities.Logging;
-import run.innkeeper.v1.build.crd.Build;
 import run.innkeeper.v1.guest.crd.Guest;
 import run.innkeeper.services.K8sService;
 import run.innkeeper.v1.guest.crd.GuestStatus;
 import run.innkeeper.v1.guest.crd.objects.BuildSettings;
 import run.innkeeper.v1.guest.crd.objects.DeploymentSettings;
+import run.innkeeper.v1.guest.crd.objects.ServiceSettings;
 
 import java.util.concurrent.TimeUnit;
 
@@ -39,6 +38,10 @@ public class GuestReconciler implements Reconciler<Guest>, Cleaner<Guest> {
         for (int i = 0; i < buildSettingsDefinitions.length; i++) {
             EventBus.get().fire(new CheckGuestDeploymentChanges(guest, deploymentSettings[i]));
         }
+        ServiceSettings[] serviceSettings = guest.getSpec().getServiceSettings();
+        for (int i = 0; i < serviceSettings.length; i++) {
+            EventBus.get().fire(new CheckGuestServiceChanges(guest, serviceSettings[i]));
+        }
         return UpdateControl.patchStatus(guest).rescheduleAfter(5, TimeUnit.SECONDS);
     }
     // Return the changed resource, so it gets updated. See javadoc for details.
@@ -46,11 +49,11 @@ public class GuestReconciler implements Reconciler<Guest>, Cleaner<Guest> {
         Logging.info("DELETING GUEST");
         BuildSettings[] buildSettingsDefinitions = guest.getSpec().getBuildSettings();
         for (int i = 0; i < buildSettingsDefinitions.length; i++) {
-            //EventBus.get().fire(new DeleteGuestBuildChanges(guest, buildSettingsDefinitions[i]));
+            EventBus.get().fire(new DeleteGuestBuild(guest, buildSettingsDefinitions[i]));
         }
         DeploymentSettings[] deploymentSettings = guest.getSpec().getDeploymentSettings();
         for (int i = 0; i < buildSettingsDefinitions.length; i++) {
-            //EventBus.get().fire(new DeleteGuestDeploymentChanges(guest, deploymentSettings[i]));
+            EventBus.get().fire(new DeleteGuestDeployment(guest, deploymentSettings[i]));
         }
         return DeleteControl.defaultDelete();
     }

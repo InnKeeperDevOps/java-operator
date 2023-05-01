@@ -34,6 +34,7 @@ public class JobBus {
     public void delete(BuildSettings buildSettings){
         this.k8sService.deleteJob(newJob(buildSettings));
     }
+
     public Job get(Job job){
         return this.k8sService.getJob(job);
     }

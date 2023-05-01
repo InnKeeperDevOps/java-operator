@@ -1,4 +1,4 @@
-package run.innkeeper.controllers.deployment;
+package run.innkeeper.controllers;
 
 import run.innkeeper.buses.DeploymentBus;
 import run.innkeeper.events.actions.deployments.CreateDeployment;

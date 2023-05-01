@@ -14,6 +14,10 @@ public class DeploymentSettings {
     String namespace;
     @Required
     String name;
+
+    @Required
+    String serviceName;
+
     int replicas;
     @Required
     List<Container> containers;
@@ -56,5 +60,13 @@ public class DeploymentSettings {
 
     public void setReplicas(int replicas) {
         this.replicas = replicas;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 }

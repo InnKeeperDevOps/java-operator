@@ -1,4 +1,4 @@
-package run.innkeeper.controllers.build;
+package run.innkeeper.controllers;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import run.innkeeper.buses.GitBus;

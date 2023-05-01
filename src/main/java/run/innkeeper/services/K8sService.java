@@ -1,6 +1,5 @@
 package run.innkeeper.services;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import run.innkeeper.utilities.Logging;
@@ -14,6 +13,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import run.innkeeper.v1.network.crd.Traffic;
+import run.innkeeper.v1.service.crd.Service;
 
 import java.util.*;
 
@@ -53,6 +54,8 @@ public class K8sService {
         put("guests.cicd.innkeeper.run", new CRDObject(Guest.class, "META-INF/fabric8/guests.cicd.innkeeper.run-v1.yml"));
         put("builds.cicd.innkeeper.run", new CRDObject(Build.class, "META-INF/fabric8/builds.cicd.innkeeper.run-v1.yml"));
         put("deployments.cicd.innkeeper.run", new CRDObject(Deployment.class, "META-INF/fabric8/deployments.cicd.innkeeper.run-v1.yml"));
+        put("services.cicd.innkeeper.run", new CRDObject(Service.class, "META-INF/fabric8/services.cicd.innkeeper.run-v1.yml"));
+        put("traffics.cicd.innkeeper.run", new CRDObject(Traffic.class, "META-INF/fabric8/traffics.cicd.innkeeper.run-v1.yml"));
     }};
 
     public CustomResourceDefinition loadCRDFromFile(String crdFileDefYaml){
@@ -129,6 +132,10 @@ public class K8sService {
         return client.resources(Build.class);
     }
 
+    public MixedOperation<Service, KubernetesResourceList<Service>, Resource<Service>> getServiceClient(){
+        return client.resources(Service.class);
+    }
+
     public void createBuild(Build build){
         getBuildClient().inNamespace(build.getMetadata().getNamespace()).resource(build).create();
     }
@@ -157,7 +164,6 @@ public class K8sService {
         deployment.setMetaData(namespace, name);
         return getDeploymentClient().inNamespace(namespace).resource(deployment).get();
     }
-
 
 
 }

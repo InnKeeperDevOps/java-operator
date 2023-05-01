@@ -3,8 +3,8 @@ package run.innkeeper.v1.guest.crd;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import run.innkeeper.v1.guest.crd.objects.BuildSettings;
 import run.innkeeper.v1.guest.crd.objects.DeploymentSettings;
-import run.innkeeper.v1.guest.crd.objects.IngressSettings;
 import io.fabric8.generator.annotation.Required;
+import run.innkeeper.v1.guest.crd.objects.TrafficSettings;
 import run.innkeeper.v1.guest.crd.objects.ServiceSettings;
 
 public class GuestSpec {
@@ -14,8 +14,8 @@ public class GuestSpec {
     @Required
     @JsonProperty("deployments")
     DeploymentSettings[] deploymentSettings;
-    @JsonProperty("ingress")
-    IngressSettings[] ingressSettings;
+    @JsonProperty("traffic")
+    TrafficSettings[] trafficSettings;
     @JsonProperty("services")
     ServiceSettings[] serviceSettings;
 
@@ -35,19 +35,19 @@ public class GuestSpec {
         this.deploymentSettings = deploymentSettings;
     }
 
-    public IngressSettings[] getIngressSettings() {
-        return ingressSettings;
-    }
-
-    public void setIngressSettings(IngressSettings[] ingressSettings) {
-        this.ingressSettings = ingressSettings;
-    }
-
     public ServiceSettings[] getServiceSettings() {
         return serviceSettings;
     }
 
     public void setServiceSettings(ServiceSettings[] serviceSettings) {
         this.serviceSettings = serviceSettings;
+    }
+
+    public TrafficSettings[] getTrafficSettings() {
+        return trafficSettings;
+    }
+
+    public void setTrafficSettings(TrafficSettings[] trafficSettings) {
+        this.trafficSettings = trafficSettings;
     }
 }

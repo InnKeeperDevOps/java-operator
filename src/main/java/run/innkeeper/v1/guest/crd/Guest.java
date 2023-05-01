@@ -8,7 +8,7 @@ import io.fabric8.kubernetes.model.annotation.Version;
 
 @Group("cicd.innkeeper.run")
 @Version("v1")
-@ShortNames("gt")
+@ShortNames("guest")
 public class Guest extends CustomResource<GuestSpec, GuestStatus> implements
     Namespaced {
 }

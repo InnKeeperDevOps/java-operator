@@ -12,6 +12,8 @@ public class GuestStatus {
     List<String> buildChangeHistory = new ArrayList<>();
     List<String> ingressChangeHistory = new ArrayList<>();
 
+    List<String> servicesChangeHistory = new ArrayList<>();
+
     public List<String> getDeploymentChangeHistory() {
         return deploymentChangeHistory;
     }
@@ -34,5 +36,13 @@ public class GuestStatus {
 
     public void setIngressChangeHistory(List<String> ingressChangeHistory) {
         this.ingressChangeHistory = ingressChangeHistory;
+    }
+
+    public List<String> getServicesChangeHistory() {
+        return servicesChangeHistory;
+    }
+
+    public void setServicesChangeHistory(List<String> servicesChangeHistory) {
+        this.servicesChangeHistory = servicesChangeHistory;
     }
 }
