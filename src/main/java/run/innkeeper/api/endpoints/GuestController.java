@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import run.innkeeper.api.dto.BuildDTO;
 import run.innkeeper.api.dto.DeploymentDTO;
 import run.innkeeper.api.dto.GuestDTO;
+import run.innkeeper.api.dto.ServiceDTO;
+import run.innkeeper.api.dto.SimpleExtensionDTO;
 import run.innkeeper.api.dto.k8s.K8sDeploymentDTO;
 import run.innkeeper.buses.DeploymentBus;
 import run.innkeeper.services.K8sService;
@@ -15,6 +17,8 @@ import run.innkeeper.v1.deployment.crd.Deployment;
 import run.innkeeper.v1.guest.crd.Guest;
 import run.innkeeper.v1.guest.crd.GuestSpec;
 import run.innkeeper.v1.guest.crd.GuestStatus;
+import run.innkeeper.v1.service.crd.Service;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -27,7 +31,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/guest")
-public class GuestController {
+public class GuestController{
   /**
    * The Deployment bus.
    */
@@ -91,11 +95,11 @@ public class GuestController {
               .map(
                   deploymentSettings ->
                       new DeploymentDTO(k8sService
-                          .getDeploymentClient()
-                          .resource(new Deployment().setMetaData(guest.getMetadata().getNamespace(), deploymentSettings.getName()))
-                          .get())
+                                            .getDeploymentClient()
+                                            .resource(new Deployment().setMetaData(guest.getMetadata().getNamespace(), deploymentSettings.getName()))
+                                            .get())
               )
-              .collect(Collectors.toList()));
+              .toList());
     }
     return returnList;
   }
@@ -135,7 +139,87 @@ public class GuestController {
                       )
 
               )
-              .collect(Collectors.toList()));
+              .toList());
+    }
+    return returnList;
+  }
+
+  /**
+   * Gets services.
+   *
+   * @param name      the name
+   * @param namespace the namespace
+   * @return the services
+   */
+  @GetMapping("/{namespace}/{name}/services")
+  public List<ServiceDTO> getServices(
+      @PathVariable("name") String name,
+      @PathVariable("namespace") String namespace
+  ) {
+    List<ServiceDTO> returnList = new ArrayList<>();
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    if (guest != null && guest.getSpec() != null) {
+      returnList.addAll(
+          Arrays
+              .stream(
+                  guest
+                      .getSpec()
+                      .getServiceSettings()
+              )
+              .map(
+                  serviceSettings ->
+                      new ServiceDTO(
+                          k8sService
+                              .getServiceClient()
+                              .resource(
+                                  new Service()
+                                      .setMetaData(guest.getMetadata().getNamespace(), serviceSettings.getName())
+                              )
+                              .get()
+                      )
+
+              )
+              .toList());
+    }
+    return returnList;
+  }
+
+  /**
+   * Gets simple extensions.
+   *
+   * @param name      the name
+   * @param namespace the namespace
+   * @return the simple extensions
+   */
+  @GetMapping("/{namespace}/{name}/extensions")
+  public List<SimpleExtensionDTO> getSimpleExtensions(
+      @PathVariable("name") String name,
+      @PathVariable("namespace") String namespace
+  ) {
+    List<SimpleExtensionDTO> returnList = new ArrayList<>();
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    if (guest != null && guest.getSpec() != null) {
+      returnList.addAll(
+          Arrays
+              .stream(
+                  guest
+                      .getSpec()
+                      .getSimpleExtensions()
+              )
+              .map(
+                  simpleExtension ->
+                      new SimpleExtensionDTO(
+                          k8sService
+                              .getSimpleExtensionClient()
+                              .resource(
+                                  new SimpleExtension()
+                                      .setMetaData(guest.getMetadata().getNamespace(), simpleExtension.getName())
+                              )
+                              .get()
+                      )
+
+              )
+              .toList());
     }
     return returnList;
   }
@@ -177,7 +261,7 @@ public class GuestController {
                     return new K8sDeploymentDTO(k8sService.getClient().resource(k8sDeployment).get());
                   }
               )
-              .collect(Collectors.toList()));
+              .toList());
     }
     return returnList;
   }
