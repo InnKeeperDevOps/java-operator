@@ -12,10 +12,11 @@ import io.fabric8.kubernetes.model.annotation.Version;
 @ShortNames("service")
 public class Service extends CustomResource<ServiceSpec, ServiceStatus> implements
     Namespaced {
-    public void setMetaData(String namespace, String name){
+    public Service setMetaData(String namespace, String name){
         ObjectMeta om = new ObjectMeta();
         om.setNamespace(namespace);
         om.setName(name);
         this.setMetadata(om);
+        return this;
     }
 }

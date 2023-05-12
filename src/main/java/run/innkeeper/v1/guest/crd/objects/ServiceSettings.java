@@ -10,10 +10,7 @@ public class ServiceSettings {
     String deployment;
     @Required
     List<ServicePort> ports;
-
-    @Required
     String type;
-
     @Required
     String name;
     @Required
@@ -56,6 +53,6 @@ public class ServiceSettings {
     }
 
     public void setType(String type) {
-        this.type = type;
+        if(this.type!=null) this.type = type;
     }
 }

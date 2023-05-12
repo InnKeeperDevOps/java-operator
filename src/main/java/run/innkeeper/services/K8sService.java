@@ -13,8 +13,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import run.innkeeper.v1.network.crd.Traffic;
 import run.innkeeper.v1.service.crd.Service;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
 
 import java.util.*;
 
@@ -55,7 +55,7 @@ public class K8sService {
         put("builds.cicd.innkeeper.run", new CRDObject(Build.class, "META-INF/fabric8/builds.cicd.innkeeper.run-v1.yml"));
         put("deployments.cicd.innkeeper.run", new CRDObject(Deployment.class, "META-INF/fabric8/deployments.cicd.innkeeper.run-v1.yml"));
         put("services.cicd.innkeeper.run", new CRDObject(Service.class, "META-INF/fabric8/services.cicd.innkeeper.run-v1.yml"));
-        put("traffics.cicd.innkeeper.run", new CRDObject(Traffic.class, "META-INF/fabric8/traffics.cicd.innkeeper.run-v1.yml"));
+        put("simpleextensions.cicd.innkeeper.run", new CRDObject(Service.class, "META-INF/fabric8/simpleextensions.cicd.innkeeper.run-v1.yml"));
     }};
 
     public CustomResourceDefinition loadCRDFromFile(String crdFileDefYaml){
@@ -119,6 +119,26 @@ public class K8sService {
 
     public MixedOperation<Guest, KubernetesResourceList<Guest>, Resource<Guest>> getGuestClient(){
         return client.resources(Guest.class);
+    }
+
+    public MixedOperation<SimpleExtension, KubernetesResourceList<SimpleExtension>, Resource<SimpleExtension>> getSimpleExtensionClient(){
+        return client.resources(SimpleExtension.class);
+    }
+
+    public SimpleExtension getSimpleExtension(SimpleExtension extension){
+        return getSimpleExtensionClient().resource(extension).get();
+    }
+    public SimpleExtension createSimpleExtension(SimpleExtension extension){
+        return getSimpleExtensionClient().resource(extension).create();
+    }
+    public SimpleExtension updateSimpleExtension(SimpleExtension extension){
+        return getSimpleExtensionClient().resource(extension).patch();
+    }
+    public SimpleExtension updateSimpleExtensionStatus(SimpleExtension extension){
+        return getSimpleExtensionClient().resource(extension).patchStatus();
+    }
+    public void deleteSimpleExtension(SimpleExtension extension){
+        getSimpleExtensionClient().resource(extension).delete();
     }
 
     public Guest getGuestByNameAndNamespace(String name, String namespace){

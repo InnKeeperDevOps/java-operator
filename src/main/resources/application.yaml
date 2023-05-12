@@ -1,0 +1,9 @@
+server:
+  port: 8081
+bezkoder:
+  openapi:
+    dev-url: http://localhost:8081
+springdoc:
+  swagger-ui:
+    path: /docs
+  packages-to-scan: run.innkeeper.api

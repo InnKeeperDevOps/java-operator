@@ -1,6 +1,12 @@
 package run.innkeeper.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.diff.JsonDiff;
 import run.innkeeper.buses.DeploymentBus;
+import run.innkeeper.events.actions.deployments.CheckDeployment;
 import run.innkeeper.events.actions.deployments.CreateDeployment;
 import run.innkeeper.events.actions.deployments.UpdateDeployment;
 import run.innkeeper.events.structure.BuildWithContainer;
@@ -11,6 +17,11 @@ import run.innkeeper.v1.build.crd.Build;
 import run.innkeeper.v1.deployment.crd.Deployment;
 import run.innkeeper.v1.deployment.crd.DeploymentState;
 
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -87,6 +98,46 @@ public class DeploymentController {
             if(deployment!=null){
                 event.getDeployment().getStatus().setState(DeploymentState.DEPLOYED);
             }
+        }else{
+            Logging.error("Missing builds ["+buildResult.getMissingContainers().stream().collect(Collectors.joining(", "))+"]");
+        }
+    }
+
+    @Trigger(CheckDeployment.class)
+    public void checkDeployment(CheckDeployment event) throws JsonProcessingException {
+        BuildResult buildResult = getBuilds(event.getDeployment());
+        if(buildResult.getMissingContainers().size()==0){
+            io.fabric8.kubernetes.api.model.apps.Deployment deployment = deploymentBus.buildDeployment(event.getDeployment().getSpec().getDeploymentSettings(), buildResult.builds.stream().reduce(
+                new HashMap<>(),
+                (list,b)->{
+                    list.put(b.getContainer().getBuildName(), b.getBuild());
+                    return list;
+                },
+                (list,b)->list
+            ));
+
+            io.fabric8.kubernetes.api.model.apps.Deployment liveDeployment = deploymentBus.get(event.getDeployment().getSpec().getDeploymentSettings());
+            if(liveDeployment == null){
+                event.getDeployment().getStatus().setState(DeploymentState.NEED_TO_DEPLOY);
+                return;
+            }
+            ObjectMapper om = new ObjectMapper();
+            String currentDeployment = om.writeValueAsString(liveDeployment.getSpec().getTemplate().getSpec().getContainers());
+            String newDeploymentData = om.writeValueAsString(deployment.getSpec());
+
+            String newDeployment = om.writeValueAsString(deployment.getSpec().getTemplate().getSpec().getContainers());
+            JsonPatch patch = JsonDiff.asJsonPatch(om.readTree(currentDeployment), om.readTree(newDeployment));
+            String jsonPatch = om.writeValueAsString(patch);
+            JsonReader reader = Json.createReader(new StringReader(jsonPatch));
+            JsonArray patchOperations = reader.readArray();
+            if(patchOperations.stream().filter(patchOp->{
+                JsonValue jn = patchOp.asJsonObject().get("path");
+                return jn!=null && jn.toString().endsWith("/image\"");
+            }).collect(Collectors.toList()).size()>0){
+                liveDeployment.setSpec(deployment.getSpec());
+                deploymentBus.updateDeployment(liveDeployment);
+            }
+
         }else{
             Logging.error("Missing builds ["+buildResult.getMissingContainers().stream().collect(Collectors.joining(", "))+"]");
         }

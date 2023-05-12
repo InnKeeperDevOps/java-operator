@@ -16,6 +16,8 @@ import run.innkeeper.v1.guest.crd.GuestStatus;
 import run.innkeeper.v1.guest.crd.objects.BuildSettings;
 import run.innkeeper.v1.guest.crd.objects.DeploymentSettings;
 import run.innkeeper.v1.guest.crd.objects.ServiceSettings;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionSpec;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,12 +37,20 @@ public class GuestReconciler implements Reconciler<Guest>, Cleaner<Guest> {
             EventBus.get().fire(new CheckGuestBuildChanges(guest, buildSettingsDefinitions[i]));
         }
         DeploymentSettings[] deploymentSettings = guest.getSpec().getDeploymentSettings();
-        for (int i = 0; i < buildSettingsDefinitions.length; i++) {
+        for (int i = 0; i < deploymentSettings.length; i++) {
             EventBus.get().fire(new CheckGuestDeploymentChanges(guest, deploymentSettings[i]));
         }
         ServiceSettings[] serviceSettings = guest.getSpec().getServiceSettings();
-        for (int i = 0; i < serviceSettings.length; i++) {
-            EventBus.get().fire(new CheckGuestServiceChanges(guest, serviceSettings[i]));
+        if(serviceSettings!=null) {
+            for (int i = 0; i < serviceSettings.length; i++) {
+                EventBus.get().fire(new CheckGuestServiceChanges(guest, serviceSettings[i]));
+            }
+        }
+        SimpleExtensionSpec[] simpleExtensions = guest.getSpec().getSimpleExtensions();
+        if(simpleExtensions!=null) {
+            for (int i = 0; i < simpleExtensions.length; i++) {
+                EventBus.get().fire(new CheckGuestExtensionChanges(guest, simpleExtensions[i]));
+            }
         }
         return UpdateControl.patchStatus(guest).rescheduleAfter(5, TimeUnit.SECONDS);
     }
@@ -52,8 +62,20 @@ public class GuestReconciler implements Reconciler<Guest>, Cleaner<Guest> {
             EventBus.get().fire(new DeleteGuestBuild(guest, buildSettingsDefinitions[i]));
         }
         DeploymentSettings[] deploymentSettings = guest.getSpec().getDeploymentSettings();
-        for (int i = 0; i < buildSettingsDefinitions.length; i++) {
+        for (int i = 0; i < deploymentSettings.length; i++) {
             EventBus.get().fire(new DeleteGuestDeployment(guest, deploymentSettings[i]));
+        }
+        ServiceSettings[] serviceSettings = guest.getSpec().getServiceSettings();
+        if(serviceSettings!=null) {
+            for (int i = 0; i < serviceSettings.length; i++) {
+                EventBus.get().fire(new DeleteGuestService(guest, serviceSettings[i]));
+            }
+        }
+        SimpleExtensionSpec[] simpleExtensions = guest.getSpec().getSimpleExtensions();
+        if(simpleExtensions!=null) {
+            for (int i = 0; i < simpleExtensions.length; i++) {
+                EventBus.get().fire(new DeleteGuestExtension(guest, simpleExtensions[i]));
+            }
         }
         return DeleteControl.defaultDelete();
     }

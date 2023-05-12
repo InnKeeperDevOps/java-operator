@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import run.innkeeper.v1.guest.crd.objects.BuildSettings;
 import run.innkeeper.v1.guest.crd.objects.DeploymentSettings;
 import io.fabric8.generator.annotation.Required;
-import run.innkeeper.v1.guest.crd.objects.TrafficSettings;
 import run.innkeeper.v1.guest.crd.objects.ServiceSettings;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionSpec;
 
 public class GuestSpec {
     @Required
@@ -14,10 +15,11 @@ public class GuestSpec {
     @Required
     @JsonProperty("deployments")
     DeploymentSettings[] deploymentSettings;
-    @JsonProperty("traffic")
-    TrafficSettings[] trafficSettings;
     @JsonProperty("services")
     ServiceSettings[] serviceSettings;
+
+    @JsonProperty("ext")
+    SimpleExtensionSpec[] simpleExtensions;
 
     public BuildSettings[] getBuildSettings() {
         return buildSettings;
@@ -43,11 +45,11 @@ public class GuestSpec {
         this.serviceSettings = serviceSettings;
     }
 
-    public TrafficSettings[] getTrafficSettings() {
-        return trafficSettings;
+    public SimpleExtensionSpec[] getSimpleExtensions() {
+        return simpleExtensions;
     }
 
-    public void setTrafficSettings(TrafficSettings[] trafficSettings) {
-        this.trafficSettings = trafficSettings;
+    public void setSimpleExtensions(SimpleExtensionSpec[] simpleExtensions) {
+        this.simpleExtensions = simpleExtensions;
     }
 }

@@ -3,11 +3,13 @@ package run.innkeeper.buses;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceFluent;
+import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import run.innkeeper.services.K8sService;
 import run.innkeeper.v1.guest.crd.objects.ServiceSettings;
 import run.innkeeper.v1.guest.crd.objects.service.ServicePort;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ServiceBus {
     public static ServiceBus serviceBus = new ServiceBus();
@@ -66,16 +68,12 @@ public class ServiceBus {
             .endMetadata()
             .withNewSpec()
             .withSelector(labels)
-            .withType(serviceSettings.getType());
-        for (int i = 0; i < serviceSettings.getPorts().size(); i++) {
-            ServicePort servicePort = serviceSettings.getPorts().get(i);
-            sb = sb.addNewPort()
-                .withName(servicePort.getName())
-                .withProtocol(servicePort.getProtocol())
-                .withPort(servicePort.getPort())
-                .withTargetPort(servicePort.getTargetPort())
-                .endPort();
-        }
+            .withType(serviceSettings.getType()).addAllToPorts(serviceSettings.getPorts().stream().map(port->new ServicePortBuilder()
+                .withName(port.getName())
+                .withProtocol(port.getProtocol())
+                .withPort(port.getPort())
+                .withTargetPort(port.getTargetPort())
+                .build()).collect(Collectors.toList()));
         return sb.endSpec().build();
     }
 }

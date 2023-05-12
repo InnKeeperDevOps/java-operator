@@ -25,8 +25,8 @@ public class ServiceController {
     public void updateService(UpdateService event){
         ServiceSettings serviceSettings = event.getService().getSpec().getServiceSettings();
         Service service = serviceBus.getService(serviceSettings);
-        if(service==null){
-            serviceBus.createService(serviceSettings);
+        if(service!=null){
+            serviceBus.updateService(serviceSettings);
             event.getService().getStatus().setServiceState(ServiceState.CREATED);
         }
     }

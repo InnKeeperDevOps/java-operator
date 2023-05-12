@@ -1,4 +1,4 @@
-package run.innkeeper.events.structure;
+package run.innkeeper.extensions;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

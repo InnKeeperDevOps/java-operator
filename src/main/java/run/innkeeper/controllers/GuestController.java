@@ -23,6 +23,9 @@ import run.innkeeper.v1.service.crd.Service;
 import run.innkeeper.v1.service.crd.ServiceSpec;
 import run.innkeeper.v1.service.crd.ServiceState;
 import run.innkeeper.v1.service.crd.ServiceStatus;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionState;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionStatus;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -65,8 +68,6 @@ public class GuestController {
             Logging.info("New build detected, creating Build CRD object");
             deploymentObj = new Deployment();
             deploymentObj.setMetaData(namespace, name);
-            deploymentObj.setStatus(new DeploymentStatus());
-            deploymentObj.getStatus().setState(DeploymentState.NEED_TO_DEPLOY);
             DeploymentSpec buildSpec = new DeploymentSpec();
             buildSpec.setDeploymentSettings(event.getDeploymentSetting());
             deploymentObj.setSpec(buildSpec);
@@ -104,9 +105,6 @@ public class GuestController {
             Logging.info("New build detected, creating Build CRD object");
             buildObj = new Build();
             buildObj.setMetaData(namespace, name);
-            buildObj.setStatus(new BuildStatus());
-            buildObj.getStatus().setState(BuildState.WAITING);
-            buildObj.getStatus().setCompleted(new ArrayList<>());
             BuildSpec buildSpec = new BuildSpec();
             buildSpec.setBuildSettings(event.getBuild());
             buildObj.setSpec(buildSpec);
@@ -136,19 +134,51 @@ public class GuestController {
                 service = k8sService.getServiceClient().resource(service).get();
                 service.getSpec().setServiceSettings(event.getServiceSettings());
                 service = k8sService.getServiceClient().resource(service).patch();
-                service.getStatus().setServiceState(ServiceState.NEED_TO_CREATE);
+                service.getStatus().setServiceState(ServiceState.RECREATE);
                 k8sService.getServiceClient().resource(service).patchStatus();
                 event.getGuest().getStatus().getServicesChangeHistory().add(jsonPatch);
             }
         }else{
             service = new Service();
             service.setMetaData(namespace, name);
-            service.setStatus(new ServiceStatus());
-            service.getStatus().setServiceState(ServiceState.NEED_TO_CREATE);
             ServiceSpec serviceSpec = new ServiceSpec();
             serviceSpec.setServiceSettings(event.getServiceSettings());
             service.setSpec(serviceSpec);
             k8sService.getServiceClient().resource(service).create();
+        }
+    }
+
+    @Trigger(CheckGuestExtensionChanges.class)
+    public void extensionChanges(CheckGuestExtensionChanges event) throws JsonProcessingException {
+        Logging.debug("Checking for updates to service "+event.getSimpleExtensionSpec().getName());
+        String name = event.getSimpleExtensionSpec().getName();
+        String namespace = event.getGuest().getMetadata().getNamespace();
+        SimpleExtension extension = new SimpleExtension();
+        extension.setMetaData(namespace, name);
+        extension = k8sService.getSimpleExtension(extension);
+        if(extension!=null) {
+            ObjectMapper om = new ObjectMapper();
+            String buildNew = om.writeValueAsString(event.getSimpleExtensionSpec());
+            String buildOld = om.writeValueAsString(extension.getSpec());
+            JsonPatch patch = JsonDiff.asJsonPatch(om.readTree(buildOld), om.readTree(buildNew));
+            String jsonPatch = om.writeValueAsString(patch);
+            JsonReader reader = Json.createReader(new StringReader(jsonPatch));
+            JsonArray patchOperations = reader.readArray();
+            if(patchOperations.size()>0){
+                extension = k8sService.getSimpleExtension(extension);
+                extension.setSpec(event.getSimpleExtensionSpec());
+                extension = k8sService.updateSimpleExtension(extension);
+                extension.getStatus().setCurrentState(SimpleExtensionState.NEED_TO_UPDATE);
+                k8sService.updateSimpleExtensionStatus(extension);
+                event.getGuest().getStatus().getExtensionsChangeHistory().add(jsonPatch);
+            }
+        }else{
+            extension = new SimpleExtension();
+            extension.setMetaData(namespace, name);
+            extension.setStatus(new SimpleExtensionStatus());
+            extension.setSpec(event.getSimpleExtensionSpec());
+            extension.getStatus().setCurrentState(SimpleExtensionState.NEED_TO_CREATE);
+            k8sService.createSimpleExtension(extension);
         }
     }
 
@@ -164,6 +194,19 @@ public class GuestController {
         Deployment deployment = new Deployment();
         deployment.setMetaData(event.getGuest().getMetadata().getNamespace(), event.getDeploymentSettings().getName());
         k8sService.getDeploymentClient().resource(deployment).delete();
+    }
+    @Trigger(DeleteGuestService.class)
+    public void deleteGuestService(DeleteGuestService event) {
+        Service service = new Service();
+        service.setMetaData(event.getGuest().getMetadata().getNamespace(), event.getServiceSettings().getName());
+        k8sService.getServiceClient().resource(service).delete();
+    }
+
+    @Trigger(DeleteGuestExtension.class)
+    public void deleteSimpleExtension(DeleteGuestExtension event) {
+        SimpleExtension simpleExtension = new SimpleExtension();
+        simpleExtension.setMetaData(event.getGuest().getMetadata().getNamespace(), event.getSimpleExtensionSpec().getName());
+        k8sService.deleteSimpleExtension(simpleExtension);
     }
 
 }

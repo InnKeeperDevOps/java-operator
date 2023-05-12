@@ -55,7 +55,7 @@ spec:
           protocol: "TCP"
           targetPort: 80
   ext:
-    - type: HTTP_ISTIO
+    - type: HTTP
       name: innkeeper-main
       data:
         gateway: internet
@@ -64,7 +64,7 @@ spec:
         namespace: innkeeper
         port: 3000
         path: /
-    - type: HTTP_ISTIO
+    - type: HTTP
       name: innkeeper-example
       data:
         gateway: internet

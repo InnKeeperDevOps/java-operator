@@ -3,6 +3,7 @@ package run.innkeeper.v1.deployment;
 import io.javaoperatorsdk.operator.api.reconciler.*;
 import run.innkeeper.buses.DeploymentBus;
 import run.innkeeper.buses.EventBus;
+import run.innkeeper.events.actions.deployments.CheckDeployment;
 import run.innkeeper.events.actions.deployments.CreateDeployment;
 import run.innkeeper.events.actions.deployments.UpdateDeployment;
 import run.innkeeper.services.K8sService;
@@ -31,6 +32,7 @@ public class DeploymentReconciler implements Reconciler<Deployment>, Cleaner<Dep
             switch (deployment.getStatus().getState()) {
                 case REDEPLOY -> eventBus.get().fire(new UpdateDeployment(deployment));
                 case NEED_TO_DEPLOY -> eventBus.get().fire(new CreateDeployment(deployment));
+                case DEPLOYED -> eventBus.get().fire(new CheckDeployment(deployment));
             }
         }
         return UpdateControl.patchStatus(deployment).rescheduleAfter(5, TimeUnit.SECONDS);
