@@ -13,18 +13,28 @@ import run.innkeeper.api.dto.k8s.K8sPodDTO;
 import run.innkeeper.services.K8sService;
 import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.deployment.crd.Deployment;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * The type Pod controller.
+ */
 @RestController
 @RequestMapping("/pod")
 public class PodController {
+  /**
+   * The K 8 s service.
+   */
   K8sService k8sService = K8sService.get();
 
+  /**
+   * Pod list.
+   *
+   * @return the list
+   */
   @GetMapping("/")
   public List<K8sPodDTO> podList() {
     List<Pod> pods = k8sService.getClient().pods().inAnyNamespace().list().getItems();
@@ -42,6 +52,13 @@ public class PodController {
     return new ArrayList<>();
   }
 
+  /**
+   * Container list list.
+   *
+   * @param name      the name
+   * @param namespace the namespace
+   * @return the list
+   */
   @GetMapping("/{namespace}/{name}/")
   public List<Container> containerList(
       @PathVariable("name") String name,
@@ -55,6 +72,14 @@ public class PodController {
     return returnList;
   }
 
+  /**
+   * Gets log.
+   *
+   * @param name      the name
+   * @param namespace the namespace
+   * @param container the container
+   * @return the log
+   */
   @GetMapping("/{namespace}/{name}/{container}/logs")
   public String getLog(
       @PathVariable("name") String name,
@@ -64,6 +89,14 @@ public class PodController {
     return k8sService.getClient().pods().inNamespace(namespace).withName(name).inContainer(container).getLog(true);
   }
 
+  /**
+   * Gets log follow.
+   *
+   * @param name      the name
+   * @param namespace the namespace
+   * @param container the container
+   * @param response  the response
+   */
   @GetMapping("/{namespace}/{name}/{container}/logs/follow")
   public void getLogFollow(
       @PathVariable("name") String name,
