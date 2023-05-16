@@ -17,13 +17,18 @@ import run.innkeeper.v1.deployment.crd.Deployment;
 import run.innkeeper.v1.guest.crd.Guest;
 import run.innkeeper.v1.guest.crd.GuestSpec;
 import run.innkeeper.v1.guest.crd.GuestStatus;
+import run.innkeeper.v1.guest.crd.objects.BuildSettings;
+import run.innkeeper.v1.guest.crd.objects.DeploymentSettings;
+import run.innkeeper.v1.guest.crd.objects.ServiceSettings;
 import run.innkeeper.v1.service.crd.Service;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
+import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionSpec;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +63,7 @@ public class GuestController{
    * @param namespace the namespace
    * @return the guest
    */
-  @GetMapping("/{namespace}/{name}")
+  @GetMapping("/{namespace}/{name}/")
   public GuestDTO getGuest(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace
@@ -97,6 +102,57 @@ public class GuestController{
                       new DeploymentDTO(k8sService
                                             .getDeploymentClient()
                                             .resource(new Deployment().setMetaData(guest.getMetadata().getNamespace(), deploymentSettings.getName()))
+                                            .get())
+              )
+              .toList());
+    }
+    return returnList;
+  }
+
+  /**
+   * Gets deployments.
+   *
+   * @param name               the name
+   * @param namespace          the namespace
+   * @param deploymentSettings the deployment settings
+   * @return the deployments
+   */
+  @PutMapping("/{namespace}/{name}/deployments")
+  public List<DeploymentDTO> saveDeployments(
+      @PathVariable("name") String name,
+      @PathVariable("namespace") String namespace,
+      @RequestBody List<DeploymentSettings> deploymentSettings
+  ) {
+    List<DeploymentDTO> returnList = new ArrayList<>();
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    if (guest != null && guest.getSpec() != null) {
+      guest
+          .getSpec()
+          .setDeploymentSettings(
+              Arrays.stream(guest.getSpec().getDeploymentSettings())
+                  .map(oldDeploymentSetting -> {
+                    Optional<DeploymentSettings> newDeploymentSetting = deploymentSettings.stream().filter(d -> d.getName().equals(oldDeploymentSetting.getName())).findFirst();
+                    if (newDeploymentSetting.isPresent()) {
+                      return newDeploymentSetting.get();
+                    }
+                    return oldDeploymentSetting;
+                  })
+                  .collect(Collectors.toList())
+                  .toArray(new DeploymentSettings[0])
+          );
+      k8sService.getGuestClient().resource(guest).update();
+      returnList.addAll(
+          Arrays
+              .stream(
+                  guest
+                      .getSpec()
+                      .getDeploymentSettings()
+              )
+              .map(
+                  deploymentSetting ->
+                      new DeploymentDTO(k8sService
+                                            .getDeploymentClient()
+                                            .resource(new Deployment().setMetaData(guest.getMetadata().getNamespace(), deploymentSetting.getName()))
                                             .get())
               )
               .toList());
@@ -264,5 +320,85 @@ public class GuestController{
               .toList());
     }
     return returnList;
+  }
+
+  /**
+   * Save guest guest dto.
+   *
+   * @param name      the name
+   * @param namespace the namespace
+   * @param guestSpec the guest spec
+   * @return the guest dto
+   */
+  @PutMapping("/{namespace}/{name}/")
+  public GuestDTO saveGuest(@PathVariable String name, @PathVariable String namespace, @RequestBody GuestSpec
+      guestSpec) {
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    guest.setSpec(guestSpec);
+    return new GuestDTO(k8sService.getGuestClient().resource(guest).update());
+  }
+
+  /**
+   * Save services guest dto.
+   *
+   * @param name            the name
+   * @param namespace       the namespace
+   * @param serviceSettings the service settings
+   * @return the guest dto
+   */
+  @PutMapping("/{namespace}/{name}/save/services")
+  public GuestDTO saveServices(@PathVariable String name, @PathVariable String
+      namespace, @RequestBody ServiceSettings[] serviceSettings) {
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    guest.getSpec().setServiceSettings(serviceSettings);
+    return new GuestDTO(k8sService.getGuestClient().resource(guest).update());
+  }
+
+  /**
+   * Save builds guest dto.
+   *
+   * @param name          the name
+   * @param namespace     the namespace
+   * @param buildSettings the build settings
+   * @return the guest dto
+   */
+  @PutMapping("/{namespace}/{name}/save/builds")
+  public GuestDTO saveBuilds(@PathVariable String name, @PathVariable String namespace, @RequestBody BuildSettings[]
+      buildSettings) {
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    guest.getSpec().setBuildSettings(buildSettings);
+    return new GuestDTO(k8sService.getGuestClient().resource(guest).update());
+  }
+
+  /**
+   * Save deployments guest dto.
+   *
+   * @param name               the name
+   * @param namespace          the namespace
+   * @param deploymentSettings the deployment settings
+   * @return the guest dto
+   */
+  @PutMapping("/{namespace}/{name}/save/deployments")
+  public GuestDTO saveDeployments(@PathVariable String name, @PathVariable String
+      namespace, @RequestBody DeploymentSettings[] deploymentSettings) {
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    guest.getSpec().setDeploymentSettings(deploymentSettings);
+    return new GuestDTO(k8sService.getGuestClient().resource(guest).update());
+  }
+
+  /**
+   * Save extensions guest dto.
+   *
+   * @param name                 the name
+   * @param namespace            the namespace
+   * @param simpleExtensionSpecs the simple extension specs
+   * @return the guest dto
+   */
+  @PutMapping("/{namespace}/{name}/save/extensions")
+  public GuestDTO saveExtensions(@PathVariable String name, @PathVariable String
+      namespace, @RequestBody SimpleExtensionSpec[] simpleExtensionSpecs) {
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    guest.getSpec().setSimpleExtensions(simpleExtensionSpecs);
+    return new GuestDTO(k8sService.getGuestClient().resource(guest).update());
   }
 }
