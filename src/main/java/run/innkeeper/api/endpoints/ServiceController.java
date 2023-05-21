@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import run.innkeeper.api.auth.UserAuthorized;
 import run.innkeeper.api.dto.BuildDTO;
 import run.innkeeper.api.dto.ServiceDTO;
 import run.innkeeper.api.dto.k8s.K8sServiceDTO;
@@ -25,6 +26,7 @@ public class ServiceController{
   K8sService k8sService = K8sService.get();
 
   @GetMapping("/")
+  @UserAuthorized("service.log.follow")
   public List<ServiceDTO> getServices() {
     return k8sService
         .getServiceClient()
@@ -36,6 +38,7 @@ public class ServiceController{
   }
 
   @GetMapping("/{namespace}/{name}/")
+  @UserAuthorized("service.get")
   public ServiceDTO getService(@PathVariable String name, @PathVariable String namespace) {
     return new ServiceDTO(k8sService
                               .getServiceClient()
@@ -45,6 +48,7 @@ public class ServiceController{
   }
 
   @GetMapping("/{namespace}/{name}/object")
+  @UserAuthorized("service.k8s")
   public K8sServiceDTO getK8sService(@PathVariable String name, @PathVariable String namespace) {
     Service service = k8sService
         .getServiceClient()

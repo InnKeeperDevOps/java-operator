@@ -3,6 +3,7 @@ package run.innkeeper.api.endpoints;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import run.innkeeper.api.auth.UserAuthorized;
 import run.innkeeper.api.dto.BuildDTO;
 import run.innkeeper.api.dto.DeploymentDTO;
 import run.innkeeper.services.K8sService;
@@ -15,7 +16,8 @@ import java.util.stream.Collectors;
 public class BuildController{
   K8sService k8sService = K8sService.get();
   @GetMapping("/")
-  public List<BuildDTO> getDeployments() {
+  @UserAuthorized("build.list")
+  public List<BuildDTO> getBuilds() {
     return k8sService
         .getBuildClient()
         .list()

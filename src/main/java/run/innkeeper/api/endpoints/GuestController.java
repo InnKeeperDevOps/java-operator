@@ -3,6 +3,7 @@ package run.innkeeper.api.endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.springframework.web.bind.annotation.*;
+import run.innkeeper.api.auth.UserAuthorized;
 import run.innkeeper.api.dto.BuildDTO;
 import run.innkeeper.api.dto.DeploymentDTO;
 import run.innkeeper.api.dto.GuestDTO;
@@ -83,6 +84,7 @@ public class GuestController{
    * @return the deployments
    */
   @GetMapping("/{namespace}/{name}/deployments")
+  @UserAuthorized("guest.deployment.list")
   public List<DeploymentDTO> getDeployments(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace
@@ -118,6 +120,7 @@ public class GuestController{
    * @return the deployments
    */
   @PutMapping("/{namespace}/{name}/deployments")
+  @UserAuthorized("guest.deployment.save")
   public List<DeploymentDTO> saveDeployments(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace,
@@ -141,23 +144,119 @@ public class GuestController{
                   .toArray(new DeploymentSettings[0])
           );
       k8sService.getGuestClient().resource(guest).update();
-      returnList.addAll(
-          Arrays
-              .stream(
-                  guest
-                      .getSpec()
-                      .getDeploymentSettings()
-              )
-              .map(
-                  deploymentSetting ->
-                      new DeploymentDTO(k8sService
-                                            .getDeploymentClient()
-                                            .resource(new Deployment().setMetaData(guest.getMetadata().getNamespace(), deploymentSetting.getName()))
-                                            .get())
-              )
-              .toList());
     }
-    return returnList;
+    return this.getDeployments(name, namespace);
+  }
+
+  /**
+   * Save services list.
+   *
+   * @param name            the name
+   * @param namespace       the namespace
+   * @param serviceSettings the service settings
+   * @return the list
+   */
+  @PutMapping("/{namespace}/{name}/services")
+  @UserAuthorized("guest.service.save")
+  public List<ServiceDTO> saveServices(
+      @PathVariable("name") String name,
+      @PathVariable("namespace") String namespace,
+      @RequestBody List<ServiceSettings> serviceSettings
+  ) {
+    List<ServiceDTO> returnList = new ArrayList<>();
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    if (guest != null && guest.getSpec() != null) {
+      guest
+          .getSpec()
+          .setServiceSettings(
+              Arrays.stream(guest.getSpec().getServiceSettings())
+                  .map(oldServiceSettings -> {
+                    Optional<ServiceSettings> newServiceSettings = serviceSettings.stream().filter(d -> d.getName().equals(oldServiceSettings.getName())).findFirst();
+                    if (newServiceSettings.isPresent()) {
+                      return newServiceSettings.get();
+                    }
+                    return oldServiceSettings;
+                  })
+                  .collect(Collectors.toList())
+                  .toArray(new ServiceSettings[0])
+          );
+      k8sService.getGuestClient().resource(guest).update();
+    }
+    return this.getServices(name, namespace);
+  }
+
+  /**
+   * Save builds list.
+   *
+   * @param name          the name
+   * @param namespace     the namespace
+   * @param buildSettings the build settings
+   * @return the list
+   */
+  @PutMapping("/{namespace}/{name}/builds")
+  @UserAuthorized("guest.build.save")
+  public List<BuildDTO> saveBuilds(
+      @PathVariable("name") String name,
+      @PathVariable("namespace") String namespace,
+      @RequestBody List<BuildSettings> buildSettings
+  ) {
+    List<BuildDTO> returnList = new ArrayList<>();
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    if (guest != null && guest.getSpec() != null) {
+      guest
+          .getSpec()
+          .setBuildSettings(
+              Arrays.stream(guest.getSpec().getBuildSettings())
+                  .map(oldBuildSettings -> {
+                    Optional<BuildSettings> newBuildSettings = buildSettings.stream().filter(d -> d.getName().equals(oldBuildSettings.getName())).findFirst();
+                    if (newBuildSettings.isPresent()) {
+                      return newBuildSettings.get();
+                    }
+                    return oldBuildSettings;
+                  })
+                  .collect(Collectors.toList())
+                  .toArray(new BuildSettings[0])
+          );
+      k8sService.getGuestClient().resource(guest).update();
+    }
+    return this.getBuilds(name, namespace);
+  }
+
+  /**
+   * Save simple extensions list.
+   *
+   * @param name                 the name
+   * @param namespace            the namespace
+   * @param simpleExtensionSpecs the simple extension specs
+   * @return the list
+   */
+  @PutMapping("/{namespace}/{name}/extensions")
+  @UserAuthorized("guest.extension.list")
+  public List<SimpleExtensionDTO> saveSimpleExtensions(
+      @PathVariable("name") String name,
+      @PathVariable("namespace") String namespace,
+      @RequestBody List<SimpleExtensionSpec> simpleExtensionSpecs
+  ) {
+    List<SimpleExtensionDTO> returnList = new ArrayList<>();
+    Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
+    if (guest != null && guest.getSpec() != null) {
+      guest
+          .getSpec()
+          .setBuildSettings(
+              Arrays.stream(guest.getSpec().getSimpleExtensions())
+                  .map(oldExtensionSettings -> {
+                    Optional<SimpleExtensionSpec> newBuildSettings = simpleExtensionSpecs.stream().filter(d -> d.getName().equals(oldExtensionSettings.getName())).findFirst();
+                    if (newBuildSettings.isPresent()) {
+                      return newBuildSettings.get();
+                    }
+                    return oldExtensionSettings;
+                  })
+                  .collect(Collectors.toList())
+                  .toArray(new BuildSettings[0])
+          );
+      k8sService.getGuestClient().resource(guest).update();
+    }
+    return this.getSimpleExtensions(name, namespace);
   }
 
   /**
@@ -168,6 +267,7 @@ public class GuestController{
    * @return the builds
    */
   @GetMapping("/{namespace}/{name}/builds")
+  @UserAuthorized("guest.build.list")
   public List<BuildDTO> getBuilds(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace
@@ -208,6 +308,7 @@ public class GuestController{
    * @return the services
    */
   @GetMapping("/{namespace}/{name}/services")
+  @UserAuthorized("guest.service.list")
   public List<ServiceDTO> getServices(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace
@@ -248,6 +349,7 @@ public class GuestController{
    * @return the simple extensions
    */
   @GetMapping("/{namespace}/{name}/extensions")
+  @UserAuthorized("guest.extension.list")
   public List<SimpleExtensionDTO> getSimpleExtensions(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace
@@ -288,6 +390,7 @@ public class GuestController{
    * @return the k 8 s deployments
    */
   @GetMapping("/{namespace}/{name}/k8s/deployments")
+  @UserAuthorized("guest.deployment.k8s.list")
   public List<K8sDeploymentDTO> getK8sDeployments(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace
@@ -331,6 +434,7 @@ public class GuestController{
    * @return the guest dto
    */
   @PutMapping("/{namespace}/{name}/")
+  @UserAuthorized("guest.save")
   public GuestDTO saveGuest(@PathVariable String name, @PathVariable String namespace, @RequestBody GuestSpec
       guestSpec) {
     Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
@@ -347,6 +451,7 @@ public class GuestController{
    * @return the guest dto
    */
   @PutMapping("/{namespace}/{name}/save/services")
+  @UserAuthorized("guest.service.save")
   public GuestDTO saveServices(@PathVariable String name, @PathVariable String
       namespace, @RequestBody ServiceSettings[] serviceSettings) {
     Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
@@ -363,6 +468,7 @@ public class GuestController{
    * @return the guest dto
    */
   @PutMapping("/{namespace}/{name}/save/builds")
+  @UserAuthorized("guest.build.save")
   public GuestDTO saveBuilds(@PathVariable String name, @PathVariable String namespace, @RequestBody BuildSettings[]
       buildSettings) {
     Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
@@ -379,6 +485,7 @@ public class GuestController{
    * @return the guest dto
    */
   @PutMapping("/{namespace}/{name}/save/deployments")
+  @UserAuthorized("guest.deployment.save")
   public GuestDTO saveDeployments(@PathVariable String name, @PathVariable String
       namespace, @RequestBody DeploymentSettings[] deploymentSettings) {
     Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();
@@ -395,6 +502,7 @@ public class GuestController{
    * @return the guest dto
    */
   @PutMapping("/{namespace}/{name}/save/extensions")
+  @UserAuthorized("guest.extension.save")
   public GuestDTO saveExtensions(@PathVariable String name, @PathVariable String
       namespace, @RequestBody SimpleExtensionSpec[] simpleExtensionSpecs) {
     Guest guest = k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).get();

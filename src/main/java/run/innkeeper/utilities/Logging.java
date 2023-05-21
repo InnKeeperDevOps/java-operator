@@ -3,10 +3,15 @@ package run.innkeeper.utilities;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Logging {
+    private static ObjectMapper om = new ObjectMapper(){{
+        this.registerModule(new JavaTimeModule());
+    }};
+
     public static StackTraceElement getStack(){
         return Thread.currentThread().getStackTrace()[3];
     }
@@ -31,21 +36,21 @@ public class Logging {
     }
     public static void info(Object obj){
         try {
-            info(new ObjectMapper().writeValueAsString(obj));
+            info(om.writeValueAsString(obj));
         } catch (JsonProcessingException e) {
             error(e.getMessage());
         }
     }
     public static void debug(Object obj){
         try {
-            debug(new ObjectMapper().writeValueAsString(obj));
+            debug(om.writeValueAsString(obj));
         } catch (JsonProcessingException e) {
             error(e.getMessage());
         }
     }
     public static void error(Object obj){
         try {
-            error(new ObjectMapper().writeValueAsString(obj));
+            error(om.writeValueAsString(obj));
         } catch (JsonProcessingException e) {
             error(e.getMessage());
         }

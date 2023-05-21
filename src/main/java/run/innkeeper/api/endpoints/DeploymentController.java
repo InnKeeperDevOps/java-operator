@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import run.innkeeper.api.auth.UserAuthorized;
 import run.innkeeper.api.dto.DeploymentDTO;
 import run.innkeeper.api.dto.k8s.K8sPodDTO;
 import run.innkeeper.services.K8sService;
@@ -28,6 +29,7 @@ public class DeploymentController {
    * @return the deployments
    */
   @GetMapping("/")
+  @UserAuthorized("deployments.list")
   public List<DeploymentDTO> getDeployments() {
     return k8sService
         .getDeploymentClient()
@@ -45,7 +47,8 @@ public class DeploymentController {
    * @param namespace the namespace
    * @return the deployment
    */
-  @GetMapping("/{namespace}/{name}/")
+  @GetMapping("/{namespace}/{name}/pods")
+  @UserAuthorized("deployment.pods")
   public List<K8sPodDTO> getDeployment(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace
@@ -78,8 +81,9 @@ public class DeploymentController {
    * @param namespace the namespace
    * @return the k 8 s deployments
    */
-  @GetMapping("/{namespace}/{name}/pods")
-  public DeploymentDTO getK8sDeployments(
+  @GetMapping("/{namespace}/{name}/")
+  @UserAuthorized("deployment.get")
+  public DeploymentDTO getDeployments(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace
   ) {

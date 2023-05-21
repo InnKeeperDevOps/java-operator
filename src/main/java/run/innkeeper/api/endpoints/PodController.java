@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import run.innkeeper.api.auth.UserAuthorized;
 import run.innkeeper.api.dto.k8s.K8sPodDTO;
 import run.innkeeper.services.K8sService;
 import run.innkeeper.utilities.Logging;
@@ -36,6 +37,7 @@ public class PodController {
    * @return the list
    */
   @GetMapping("/")
+  @UserAuthorized("pod.list")
   public List<K8sPodDTO> podList() {
     List<Pod> pods = k8sService.getClient().pods().inAnyNamespace().list().getItems();
     if (pods != null) {
@@ -60,6 +62,7 @@ public class PodController {
    * @return the list
    */
   @GetMapping("/{namespace}/{name}/")
+  @UserAuthorized("pod.get")
   public List<Container> containerList(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace
@@ -81,6 +84,7 @@ public class PodController {
    * @return the log
    */
   @GetMapping("/{namespace}/{name}/{container}/logs")
+  @UserAuthorized("pod.log")
   public String getLog(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace,
@@ -98,6 +102,7 @@ public class PodController {
    * @param response  the response
    */
   @GetMapping("/{namespace}/{name}/{container}/logs/follow")
+  @UserAuthorized("pod.log.follow")
   public void getLogFollow(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace,
