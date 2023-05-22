@@ -64,6 +64,14 @@ public class IstioHttpRoute implements ExtensionStructure{
   @Override
   public void delete(SimpleExtension simpleExtension) {
     Logging.info("Simple extension deleting....");
+    String name = simpleExtension.getSpec().getName();
+    IntOrString namespace = simpleExtension.getSpec().getData().get("namespace");
+    HTTPRoute httpRoute = new HTTPRouteBuilder()
+        .withNewMetadata()
+        .withName(name)
+        .withNamespace(namespace.getStrVal())
+        .endMetadata().build();
+    k8sService.getClient().resource(httpRoute).delete();
   }
 
   /**

@@ -7,6 +7,7 @@ import run.innkeeper.buses.ExtensionBus;
 import run.innkeeper.events.server.ServerStarted;
 import run.innkeeper.events.structure.Trigger;
 import run.innkeeper.utilities.Logging;
+import run.innkeeper.v1.account.AccountReconciler;
 import run.innkeeper.v1.build.BuildReconciler;
 import run.innkeeper.v1.deployment.DeploymentReconciler;
 import run.innkeeper.v1.guest.GuestReconciler;
@@ -36,6 +37,7 @@ public class ServerController {
       operator.register(new DeploymentReconciler());
       operator.register(new ServiceReconciler());
       operator.register(new SimpleExtensionReconciler());
+      operator.register(new AccountReconciler());
       operator.start();
     }).start();
     new Thread(() -> SpringApplication.run(ApiServer.class, new String[0])).start();

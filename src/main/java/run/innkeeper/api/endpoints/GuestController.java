@@ -53,6 +53,7 @@ public class GuestController{
    * @return the guests
    */
   @GetMapping("/")
+  @UserAuthorized("guest.list")
   public List<GuestDTO> getGuests() {
     return k8sService.getGuestClient().resources().map(guestResource -> new GuestDTO(guestResource.item())).collect(Collectors.toList());
   }
@@ -65,6 +66,7 @@ public class GuestController{
    * @return the guest
    */
   @GetMapping("/{namespace}/{name}/")
+  @UserAuthorized("guest.get")
   public GuestDTO getGuest(
       @PathVariable("name") String name,
       @PathVariable("namespace") String namespace

@@ -22,61 +22,63 @@ import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionSpec;
 import java.util.concurrent.TimeUnit;
 
 @ControllerConfiguration()
-public class GuestReconciler implements Reconciler<Guest>, Cleaner<Guest> {
+public class GuestReconciler implements Reconciler<Guest>, Cleaner<Guest>{
 
-    K8sService k8sService = K8sService.get();
+  K8sService k8sService = K8sService.get();
 
-    @Override
-    public UpdateControl<Guest> reconcile(Guest guest, Context<Guest> context) throws Exception {
-        Logging.debug("================== GUEST RECONCILE =========================");
-        if(guest.getStatus()==null){
-            guest.setStatus(new GuestStatus());
-        }
-        BuildSettings[] buildSettingsDefinitions = guest.getSpec().getBuildSettings();
-        for (int i = 0; i < buildSettingsDefinitions.length; i++) {
-            EventBus.get().fire(new CheckGuestBuildChanges(guest, buildSettingsDefinitions[i]));
-        }
-        DeploymentSettings[] deploymentSettings = guest.getSpec().getDeploymentSettings();
-        for (int i = 0; i < deploymentSettings.length; i++) {
-            EventBus.get().fire(new CheckGuestDeploymentChanges(guest, deploymentSettings[i]));
-        }
-        ServiceSettings[] serviceSettings = guest.getSpec().getServiceSettings();
-        if(serviceSettings!=null) {
-            for (int i = 0; i < serviceSettings.length; i++) {
-                EventBus.get().fire(new CheckGuestServiceChanges(guest, serviceSettings[i]));
-            }
-        }
-        SimpleExtensionSpec[] simpleExtensions = guest.getSpec().getSimpleExtensions();
-        if(simpleExtensions!=null) {
-            for (int i = 0; i < simpleExtensions.length; i++) {
-                EventBus.get().fire(new CheckGuestExtensionChanges(guest, simpleExtensions[i]));
-            }
-        }
-        return UpdateControl.patchStatus(guest).rescheduleAfter(5, TimeUnit.SECONDS);
+  @Override
+  public UpdateControl<Guest> reconcile(Guest guest, Context<Guest> context) throws Exception {
+    Logging.debug("================== GUEST RECONCILE =========================");
+    if (guest.getStatus() == null) {
+      guest.setStatus(new GuestStatus());
     }
-    // Return the changed resource, so it gets updated. See javadoc for details.
-    public DeleteControl cleanup(Guest guest, Context<Guest> context){
-        Logging.info("DELETING GUEST");
-        BuildSettings[] buildSettingsDefinitions = guest.getSpec().getBuildSettings();
-        for (int i = 0; i < buildSettingsDefinitions.length; i++) {
-            EventBus.get().fire(new DeleteGuestBuild(guest, buildSettingsDefinitions[i]));
-        }
-        DeploymentSettings[] deploymentSettings = guest.getSpec().getDeploymentSettings();
-        for (int i = 0; i < deploymentSettings.length; i++) {
-            EventBus.get().fire(new DeleteGuestDeployment(guest, deploymentSettings[i]));
-        }
-        ServiceSettings[] serviceSettings = guest.getSpec().getServiceSettings();
-        if(serviceSettings!=null) {
-            for (int i = 0; i < serviceSettings.length; i++) {
-                EventBus.get().fire(new DeleteGuestService(guest, serviceSettings[i]));
-            }
-        }
-        SimpleExtensionSpec[] simpleExtensions = guest.getSpec().getSimpleExtensions();
-        if(simpleExtensions!=null) {
-            for (int i = 0; i < simpleExtensions.length; i++) {
-                EventBus.get().fire(new DeleteGuestExtension(guest, simpleExtensions[i]));
-            }
-        }
-        return DeleteControl.defaultDelete();
+    BuildSettings[] buildSettingsDefinitions = guest.getSpec().getBuildSettings();
+    for (int i = 0; i < buildSettingsDefinitions.length; i++) {
+      EventBus.get().fire(new CheckGuestBuildChanges(guest, buildSettingsDefinitions[i]));
     }
+    DeploymentSettings[] deploymentSettings = guest.getSpec().getDeploymentSettings();
+    for (int i = 0; i < deploymentSettings.length; i++) {
+      EventBus.get().fire(new CheckGuestDeploymentChanges(guest, deploymentSettings[i]));
+    }
+    ServiceSettings[] serviceSettings = guest.getSpec().getServiceSettings();
+    if (serviceSettings != null) {
+      for (int i = 0; i < serviceSettings.length; i++) {
+        EventBus.get().fire(new CheckGuestServiceChanges(guest, serviceSettings[i]));
+      }
+    }
+    SimpleExtensionSpec[] simpleExtensions = guest.getSpec().getSimpleExtensions();
+    if (simpleExtensions != null) {
+      for (int i = 0; i < simpleExtensions.length; i++) {
+        EventBus.get().fire(new CheckGuestExtensionChanges(guest, simpleExtensions[i]));
+      }
+    }
+    k8sService.getGuestClient().resource(guest).updateStatus();
+    return UpdateControl.noUpdate();
+  }
+
+  // Return the changed resource, so it gets updated. See javadoc for details.
+  public DeleteControl cleanup(Guest guest, Context<Guest> context) {
+    Logging.info("DELETING GUEST");
+    BuildSettings[] buildSettingsDefinitions = guest.getSpec().getBuildSettings();
+    for (int i = 0; i < buildSettingsDefinitions.length; i++) {
+      EventBus.get().fire(new DeleteGuestBuild(guest, buildSettingsDefinitions[i]));
+    }
+    DeploymentSettings[] deploymentSettings = guest.getSpec().getDeploymentSettings();
+    for (int i = 0; i < deploymentSettings.length; i++) {
+      EventBus.get().fire(new DeleteGuestDeployment(guest, deploymentSettings[i]));
+    }
+    ServiceSettings[] serviceSettings = guest.getSpec().getServiceSettings();
+    if (serviceSettings != null) {
+      for (int i = 0; i < serviceSettings.length; i++) {
+        EventBus.get().fire(new DeleteGuestService(guest, serviceSettings[i]));
+      }
+    }
+    SimpleExtensionSpec[] simpleExtensions = guest.getSpec().getSimpleExtensions();
+    if (simpleExtensions != null) {
+      for (int i = 0; i < simpleExtensions.length; i++) {
+        EventBus.get().fire(new DeleteGuestExtension(guest, simpleExtensions[i]));
+      }
+    }
+    return DeleteControl.defaultDelete();
+  }
 }

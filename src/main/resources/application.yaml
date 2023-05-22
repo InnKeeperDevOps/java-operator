@@ -5,7 +5,7 @@ bezkoder:
     dev-url: http://localhost:8081
 springdoc:
   swagger-ui:
-    path: /
+    path: /docs
   packages-to-scan: run.innkeeper.api
 
 spring:
