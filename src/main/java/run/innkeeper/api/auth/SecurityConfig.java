@@ -22,10 +22,7 @@ public class SecurityConfig {
         .anyRequest()
         .authenticated()
         .and()
-        .oauth2Login()
-        .and()
-        .logout()
-        .logoutSuccessUrl("/");
+        .oauth2Login().and().csrf().disable();
     return http.build();
   }
 }

@@ -17,7 +17,9 @@ import run.innkeeper.services.AccountService;
 import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.account.crd.Account;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Aspect
 @Component
@@ -30,6 +32,7 @@ public class CheckUserAuthorized{
     MethodSignature signature = (MethodSignature) pjp.getSignature();
     UserAuthorized userAuthorized = signature.getMethod().getAnnotation(UserAuthorized.class);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
     if (authentication != null && authentication.isAuthenticated()) {
       Object principal = authentication.getPrincipal();
       if (principal instanceof DefaultOidcUser) {

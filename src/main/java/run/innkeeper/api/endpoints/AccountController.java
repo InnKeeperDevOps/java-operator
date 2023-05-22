@@ -13,6 +13,7 @@ import run.innkeeper.services.K8sService;
 import run.innkeeper.v1.account.crd.Account;
 import run.innkeeper.v1.account.crd.AccountSpec;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,22 +45,29 @@ public class AccountController{
     }
     return new AccountDTO(account);
   }
+
   @PutMapping("/{name}/grant/{permission}")
   @UserAuthorized("user.permission.grant")
   public AccountDTO addPermission(@PathVariable String name, @PathVariable String permission) {
     Account account = accountService.getAccount(name);
     if (account != null) {
+      if(account.getSpec().getPermissions()==null) {
+        account.getSpec().setPermissions(new ArrayList<>());
+      }
       account.getSpec().getPermissions().add(permission);
       k8sService.getAccountClient().resource(account).update();
     }
     return new AccountDTO(account);
   }
+
   @PutMapping("/{name}/revoke/{permission}")
   @UserAuthorized("user.permission.revoke")
   public AccountDTO removePermission(@PathVariable String name, @PathVariable String permission) {
     Account account = accountService.getAccount(name);
     if (account != null) {
-      account.getSpec().setPermissions(account.getSpec().getPermissions().stream().filter(p->!p.equals(permission)).collect(Collectors.toList()));
+      if(account.getSpec().getPermissions()!=null) {
+        account.getSpec().setPermissions(account.getSpec().getPermissions().stream().filter(p -> !p.equals(permission)).collect(Collectors.toList()));
+      }
       k8sService.getAccountClient().resource(account).update();
     }
     return new AccountDTO(account);
