@@ -1,6 +1,5 @@
 package run.innkeeper.api.endpoints;
 
-import ch.qos.logback.classic.Logger;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import run.innkeeper.api.auth.UserAuthorized;
 import run.innkeeper.api.dto.k8s.K8sPodDTO;
 import run.innkeeper.services.K8sService;
-import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.deployment.crd.Deployment;
 import java.io.BufferedReader;
 import java.io.IOException;

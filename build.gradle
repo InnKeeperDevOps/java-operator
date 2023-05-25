@@ -28,6 +28,7 @@ dependencies {
     implementation 'com.puppycrawl.tools:checkstyle:10.9.1'
     implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     annotationProcessor 'io.fabric8:crd-generator-apt:6.5.1'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.1'
     implementation group: 'me.snowdrop', name: 'istio-client', version: '1.7.7.1'

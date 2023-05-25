@@ -69,7 +69,7 @@ public class EventBus {
 
             Object obj = objects.get(method.getDeclaringClass());
             if (obj != null) {
-                Logging.info("Invoking [" + obj.getClass().getSimpleName() + "] " + method.getName());
+                Logging.debug("Invoking [" + obj.getClass().getSimpleName() + "] " + method.getName());
                 try {
                     method.invoke(obj, objectList.toArray());
                 } catch (IllegalAccessException e) {

@@ -18,14 +18,14 @@ import java.util.Arrays;
 
 @Aspect
 @Component
-public class CheckUserAuthorized{
+public class WSCheckUserAuthorized{
   AccountService accountService = AccountService.get();
 
-  @Around("@annotation(run.innkeeper.api.auth.UserAuthorized)")
+  @Around("@annotation(run.innkeeper.api.auth.WebSocketUserAuthorized)")
   public Object checkUserValid(ProceedingJoinPoint pjp) throws Throwable {
     HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
     MethodSignature signature = (MethodSignature) pjp.getSignature();
-    UserAuthorized userAuthorized = signature.getMethod().getAnnotation(UserAuthorized.class);
+    WebSocketUserAuthorized userAuthorized = signature.getMethod().getAnnotation(WebSocketUserAuthorized.class);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     if (authentication != null && authentication.isAuthenticated()) {

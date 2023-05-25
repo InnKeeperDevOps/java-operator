@@ -1,6 +1,5 @@
 package run.innkeeper.api.endpoints;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.springframework.web.bind.annotation.*;
 import run.innkeeper.api.auth.UserAuthorized;
@@ -12,12 +11,10 @@ import run.innkeeper.api.dto.SimpleExtensionDTO;
 import run.innkeeper.api.dto.k8s.K8sDeploymentDTO;
 import run.innkeeper.buses.DeploymentBus;
 import run.innkeeper.services.K8sService;
-import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.build.crd.Build;
 import run.innkeeper.v1.deployment.crd.Deployment;
 import run.innkeeper.v1.guest.crd.Guest;
 import run.innkeeper.v1.guest.crd.GuestSpec;
-import run.innkeeper.v1.guest.crd.GuestStatus;
 import run.innkeeper.v1.guest.crd.objects.BuildSettings;
 import run.innkeeper.v1.guest.crd.objects.DeploymentSettings;
 import run.innkeeper.v1.guest.crd.objects.ServiceSettings;
@@ -25,7 +22,6 @@ import run.innkeeper.v1.service.crd.Service;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionSpec;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
