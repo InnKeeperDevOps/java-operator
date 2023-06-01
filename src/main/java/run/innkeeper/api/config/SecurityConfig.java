@@ -1,17 +1,9 @@
-package run.innkeeper.api.auth;
+package run.innkeeper.api.config;
 
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.io.IOException;
-import java.util.logging.Logger;
 
 @Configuration
 public class SecurityConfig {

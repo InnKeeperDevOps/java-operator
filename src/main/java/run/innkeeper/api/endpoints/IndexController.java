@@ -1,16 +1,19 @@
 package run.innkeeper.api.endpoints;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import run.innkeeper.api.auth.UserAuthorized;
-import run.innkeeper.services.AdminUIFileSystem;
+import run.innkeeper.api.annotations.UserAuthorized;
+import run.innkeeper.api.services.AdminUIFileSystem;
 
 @RestController
 public class IndexController{
-  AdminUIFileSystem adminUIFileSystem = AdminUIFileSystem.get();
+  @Autowired
+  AdminUIFileSystem adminUIFileSystem;
+
   @GetMapping("/")
   @UserAuthorized("server.index")
   public String getIndex() {
-    return adminUIFileSystem.getFiles().get("admin-ui-main/index.html");
+    return adminUIFileSystem.getFile("index.html");
   }
 }

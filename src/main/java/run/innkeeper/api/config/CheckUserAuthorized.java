@@ -1,4 +1,4 @@
-package run.innkeeper.api.auth;
+package run.innkeeper.api.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import run.innkeeper.api.annotations.UserAuthorized;
 import run.innkeeper.services.AccountService;
 import run.innkeeper.v1.account.crd.Account;
 
@@ -21,7 +22,7 @@ import java.util.Arrays;
 public class CheckUserAuthorized{
   AccountService accountService = AccountService.get();
 
-  @Around("@annotation(run.innkeeper.api.auth.UserAuthorized)")
+  @Around("@annotation(run.innkeeper.api.annotations.UserAuthorized)")
   public Object checkUserValid(ProceedingJoinPoint pjp) throws Throwable {
     HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
     MethodSignature signature = (MethodSignature) pjp.getSignature();

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import run.innkeeper.api.auth.UnauthorizedException;
+import run.innkeeper.api.config.UnauthorizedException;
 import run.innkeeper.utilities.Logging;
 
 import java.io.IOException;

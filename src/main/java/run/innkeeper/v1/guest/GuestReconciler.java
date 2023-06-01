@@ -52,8 +52,7 @@ public class GuestReconciler implements Reconciler<Guest>, Cleaner<Guest>{
         EventBus.get().fire(new CheckGuestExtensionChanges(guest, simpleExtensions[i]));
       }
     }
-    k8sService.getGuestClient().resource(guest).updateStatus();
-    return UpdateControl.noUpdate();
+    return UpdateControl.updateStatus(guest).rescheduleAfter(3, TimeUnit.SECONDS);
   }
 
   // Return the changed resource, so it gets updated. See javadoc for details.

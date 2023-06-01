@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import run.innkeeper.api.auth.UserAuthorized;
+import run.innkeeper.api.annotations.UserAuthorized;
 import run.innkeeper.api.dto.k8s.K8sPodDTO;
 import run.innkeeper.services.K8sService;
 import run.innkeeper.v1.deployment.crd.Deployment;

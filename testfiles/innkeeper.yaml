@@ -73,3 +73,5 @@ spec:
         namespace: innkeeper
         port: 80
         path: /
+    - type: NGINX-PM
+

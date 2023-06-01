@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import run.innkeeper.api.auth.UserAuthorized;
+import run.innkeeper.api.annotations.UserAuthorized;
 import run.innkeeper.api.dto.AccountDTO;
 import run.innkeeper.services.AccountService;
 import run.innkeeper.services.K8sService;

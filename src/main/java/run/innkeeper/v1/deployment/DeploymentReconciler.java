@@ -35,8 +35,7 @@ public class DeploymentReconciler implements Reconciler<Deployment>, Cleaner<Dep
         case DEPLOYED -> eventBus.get().fire(new CheckDeployment(deployment));
       }
     }
-    k8sService.getDeploymentClient().resource(deployment).updateStatus();
-    return UpdateControl.noUpdate();
+    return UpdateControl.updateStatus(deployment).rescheduleAfter(3, TimeUnit.SECONDS);
   }
 
   @Override

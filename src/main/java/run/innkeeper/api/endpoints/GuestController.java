@@ -2,7 +2,7 @@ package run.innkeeper.api.endpoints;
 
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.springframework.web.bind.annotation.*;
-import run.innkeeper.api.auth.UserAuthorized;
+import run.innkeeper.api.annotations.UserAuthorized;
 import run.innkeeper.api.dto.BuildDTO;
 import run.innkeeper.api.dto.DeploymentDTO;
 import run.innkeeper.api.dto.GuestDTO;

@@ -2,6 +2,7 @@ package run.innkeeper.services;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.client.dsl.LogWatch;
 import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.account.crd.Account;
 import run.innkeeper.v1.build.crd.Build;
@@ -17,6 +18,7 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import run.innkeeper.v1.service.crd.Service;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
 
+import java.io.InputStream;
 import java.util.*;
 
 public class K8sService{
@@ -110,6 +112,34 @@ public class K8sService{
     return null;
   }
 
+  public InputStream logStream(Job job) {
+    Job jobExists = client.resource(job).get();
+    if (jobExists != null) {
+      List<Pod> pods = client.pods().inNamespace(jobExists.getMetadata().getNamespace()).withLabel("job-name", jobExists.getMetadata().getName()).list().getItems();
+      if (pods.size() == 1) {
+        Pod pod = pods.get(0);
+        String containerName = pod.getSpec().getContainers().get(0).getName();
+        String podName = pod.getMetadata().getName();
+        String namespace = pod.getMetadata().getNamespace();
+        return client.pods().inNamespace(namespace).withName(podName).inContainer(containerName).getLogInputStream();
+      }
+    }
+    return null;
+  }
+  public LogWatch logWatch(Job job) {
+    Job jobExists = client.resource(job).get();
+    if (jobExists != null) {
+      List<Pod> pods = client.pods().inNamespace(jobExists.getMetadata().getNamespace()).withLabel("job-name", jobExists.getMetadata().getName()).list().getItems();
+      if (pods.size() == 1) {
+        Pod pod = pods.get(0);
+        String containerName = pod.getSpec().getContainers().get(0).getName();
+        String podName = pod.getMetadata().getName();
+        String namespace = pod.getMetadata().getNamespace();
+        return client.pods().inNamespace(namespace).withName(podName).inContainer(containerName).watchLog();
+      }
+    }
+    return null;
+  }
 
   public void createJob(Job job) {
     this.client.resource(job).create();

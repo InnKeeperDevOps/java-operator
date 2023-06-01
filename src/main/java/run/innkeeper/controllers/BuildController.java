@@ -30,7 +30,7 @@ public class BuildController {
     @Trigger(BuildFinished.class)
     public void buildFinished(BuildFinished event) {
         if (event != null) {
-            Logging.info("WOOOT " + event.getBuild().getMetadata().getName());
+            Logging.debug("WOOOT " + event.getBuild().getMetadata().getName());
         }
     }
 
@@ -77,7 +77,7 @@ public class BuildController {
             } else if (job.getStatus() != null && job.getStatus().getFailed()!=null && job.getStatus().getFailed() == 1) {
                 event.getBuild().getStatus().setState(BuildState.BUILD_FAILED);
             } else {
-                Logging.info("waiting for build to complete");
+                Logging.debug("waiting for build to complete");
             }
         }
     }
@@ -108,7 +108,7 @@ public class BuildController {
                     k8sService.deleteJob(job);
                 }
             } else {
-                Logging.info("waiting for git check to complete");
+                Logging.debug("waiting for git check to complete");
             }
         }
     }

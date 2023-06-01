@@ -1,4 +1,4 @@
-package run.innkeeper.api.auth;
+package run.innkeeper.api.config;
 
 public class UnauthorizedException extends Exception{
   public UnauthorizedException(String message) {
