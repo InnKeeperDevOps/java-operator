@@ -31,6 +31,9 @@ public class WSCheckUserAuthorized{
 
   @Around("@annotation(run.innkeeper.api.annotations.WebSocketUserAuthorized)")
   public Object checkUserValid(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+    if(System.getenv("NO_AUTH") != null){
+      return proceedingJoinPoint.proceed();
+    }
     Object[] args = proceedingJoinPoint.getArgs();
     OAuth2AuthenticationToken principal = null;
     SimpMessageHeaderAccessor headerAccessor = null;

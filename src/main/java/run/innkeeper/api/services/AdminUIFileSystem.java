@@ -44,7 +44,7 @@ public class AdminUIFileSystem{
     }
 
     String commit = getCommit(logWatch);
-    if (!commit.equals(this.commit)) {
+    if (commit != null && !commit.equals(this.commit)) {
       Logging.debug("new commit: " + commit);
       this.commit = commit;
       this.load();

@@ -19,15 +19,18 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/ws")
-public class WebSocketAuthToken {
+public class WebSocketAuthToken{
 
   @Autowired
   WSSessionStorage wsSessionStorage;
 
   @GetMapping("/token")
   @UserAuthorized("ws.token")
-  public List<String> getToken(OAuth2AuthenticationToken principal, @CookieValue("JSESSIONID") String sessionId){
-    String email = ((DefaultOidcUser) principal.getPrincipal()).getEmail();
+  public List<String> getToken(OAuth2AuthenticationToken principal, @CookieValue("JSESSIONID") String sessionId) {
+    String email = UUID.randomUUID().toString();
+    if (principal != null && principal.getPrincipal() != null) {
+      ((DefaultOidcUser) principal.getPrincipal()).getEmail();
+    }
     String uuid = UUID.randomUUID().toString();
     wsSessionStorage.getCache().put(uuid, new WSToken(sessionId, email));
     return Arrays.asList(uuid, sessionId);
