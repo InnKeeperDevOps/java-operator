@@ -1,0 +1,48 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-admin-role
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["*"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-admin-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin-role
+subjects:
+  - kind: ServiceAccount
+    name: cluster-admin-account
+    namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-operator-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: java-operator
+  template:
+    metadata:
+      labels:
+        app: java-operator
+    spec:
+      serviceAccountName: cluster-admin-account
+      containers:
+        - name: java-operator-container
+          env:
+            - name: GOOGLE_AUTH_ID
+              value: <string>
+            - name: GOOGLE_AUTH_SECRET
+              value: <string>
+            - name: DOMAIN_PORT
+              value: "http://127.0.0.1:8080"
+          image: ghcr.io/innkeeperdevops/java-operator:main
