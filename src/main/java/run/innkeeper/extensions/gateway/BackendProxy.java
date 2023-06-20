@@ -208,7 +208,7 @@ public class BackendProxy implements ExtensionStructure{
             this.deleteBridge(simpleExtension);
             this.createBridge(simpleExtension);
           } else {
-            Logging.error("Nothing changed!");
+            Logging.info("Nothing changed!");
           }
         } else {
           this.createBridge(simpleExtension);
