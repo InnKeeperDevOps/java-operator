@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: innkeeper/java-operator
+  IMAGE_NAME: InnKeeperDevOps/java-operator
 jobs:
   build:
     runs-on: ubuntu-latest
