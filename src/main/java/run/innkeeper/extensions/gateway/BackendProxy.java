@@ -206,6 +206,7 @@ public class BackendProxy implements ExtensionStructure{
                   !bridgeDetailDTO.getPub().getAddress().equals(backendProxySettings.getIp())
           ) {
             this.deleteBridge(simpleExtension);
+            Thread.sleep(2000);
             this.createBridge(simpleExtension);
           } else {
             Logging.info("Nothing changed!");
