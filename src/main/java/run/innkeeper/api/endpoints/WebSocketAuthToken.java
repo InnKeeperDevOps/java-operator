@@ -26,7 +26,7 @@ public class WebSocketAuthToken{
 
   @GetMapping("/token")
   @UserAuthorized("ws.token")
-  public List<String> getToken(OAuth2AuthenticationToken principal, @CookieValue("JSESSIONID") String sessionId) {
+  public List<String> getToken(OAuth2AuthenticationToken principal, @CookieValue(value = "JSESSIONID", required = false, defaultValue = "test") String sessionId) {
     String email = UUID.randomUUID().toString();
     if (principal != null && principal.getPrincipal() != null) {
       ((DefaultOidcUser) principal.getPrincipal()).getEmail();

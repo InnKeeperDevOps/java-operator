@@ -5,7 +5,6 @@ import run.innkeeper.buses.ServiceBus;
 import run.innkeeper.events.actions.services.CreateService;
 import run.innkeeper.events.actions.services.UpdateService;
 import run.innkeeper.events.structure.Trigger;
-import run.innkeeper.services.K8sService;
 import run.innkeeper.v1.guest.crd.objects.ServiceSettings;
 import run.innkeeper.v1.service.crd.ServiceState;
 

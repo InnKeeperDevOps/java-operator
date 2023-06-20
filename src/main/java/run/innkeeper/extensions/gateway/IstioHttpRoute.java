@@ -1,10 +1,10 @@
-package run.innkeeper.extensions.istio;
+package run.innkeeper.extensions.gateway;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.*;
 import run.innkeeper.extensions.Extension;
 import run.innkeeper.extensions.ExtensionStructure;
-import run.innkeeper.extensions.istio.dto.HttpRouteDTO;
+import run.innkeeper.extensions.gateway.dto.HttpRouteDTO;
 import run.innkeeper.services.K8sService;
 import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;

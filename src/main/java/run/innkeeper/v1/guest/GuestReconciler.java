@@ -16,7 +16,6 @@ import run.innkeeper.v1.guest.crd.GuestStatus;
 import run.innkeeper.v1.guest.crd.objects.BuildSettings;
 import run.innkeeper.v1.guest.crd.objects.DeploymentSettings;
 import run.innkeeper.v1.guest.crd.objects.ServiceSettings;
-import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionSpec;
 
 import java.util.concurrent.TimeUnit;

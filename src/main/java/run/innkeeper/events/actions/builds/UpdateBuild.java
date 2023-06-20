@@ -4,8 +4,6 @@ import run.innkeeper.events.structure.BuildEvent;
 import run.innkeeper.v1.build.crd.Build;
 import run.innkeeper.v1.guest.crd.objects.BuildSettings;
 
-import java.util.List;
-
 public class UpdateBuild extends BuildEvent {
     BuildSettings newBuildSettings;
 

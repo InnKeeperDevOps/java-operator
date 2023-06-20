@@ -32,8 +32,10 @@ public class AdminUIFileSystem{
 
   @Scheduled(fixedRate = 4000)
   public void grabNewestUI() throws IOException, InterruptedException {
-    LatestCommitCheck latestCommitCheck = LatestCommitCheck.newInstance();
-    latestCommitCheck.create();
+    LatestCommitCheck latestCommitCheck = LatestCommitCheck.newInstance("admin-ui");
+    if (latestCommitCheck.get() == null) {
+      latestCommitCheck.create();
+    }
     LogWatch logWatch = null;
     while (logWatch == null) {
       try {

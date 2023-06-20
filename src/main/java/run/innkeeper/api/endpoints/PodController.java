@@ -2,15 +2,19 @@ package run.innkeeper.api.endpoints;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import run.innkeeper.api.annotations.UserAuthorized;
 import run.innkeeper.api.dto.k8s.K8sPodDTO;
 import run.innkeeper.services.K8sService;
+import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.deployment.crd.Deployment;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -90,6 +94,7 @@ public class PodController {
   ) {
     return k8sService.getClient().pods().inNamespace(namespace).withName(name).inContainer(container).getLog(true);
   }
+
 
   /**
    * Gets log follow.

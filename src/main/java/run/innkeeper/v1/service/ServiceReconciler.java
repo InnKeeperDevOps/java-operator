@@ -50,7 +50,6 @@ public class ServiceReconciler implements Reconciler<Service>, Cleaner<Service>{
         case NEED_TO_CREATE -> eventBus.get().fire(new CreateService(service));
       }
     }
-    k8sService.getServiceClient().resource(service).updateStatus();
-    return UpdateControl.noUpdate();
+    return UpdateControl.updateStatus(service).rescheduleAfter(3, TimeUnit.SECONDS);
   }
 }

@@ -2,18 +2,12 @@ package run.innkeeper.v1.simpleExtensions;
 
 import io.javaoperatorsdk.operator.api.reconciler.*;
 import run.innkeeper.buses.EventBus;
-import run.innkeeper.buses.ExtensionBus;
-import run.innkeeper.events.actions.services.CreateService;
-import run.innkeeper.events.actions.services.UpdateService;
 import run.innkeeper.events.extension.ExtensionCheck;
 import run.innkeeper.events.extension.ExtensionCreate;
 import run.innkeeper.events.extension.ExtensionDelete;
 import run.innkeeper.events.extension.ExtensionUpdate;
 import run.innkeeper.services.K8sService;
 import run.innkeeper.utilities.Logging;
-import run.innkeeper.v1.service.crd.Service;
-import run.innkeeper.v1.service.crd.ServiceState;
-import run.innkeeper.v1.service.crd.ServiceStatus;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionState;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionStatus;
@@ -46,7 +40,6 @@ public class SimpleExtensionReconciler implements Reconciler<SimpleExtension>, C
         case UP_TO_DATE -> eventBus.get().fire(new ExtensionCheck(resource));
       }
     }
-    k8sService.getSimpleExtensionClient().resource(resource).updateStatus();
-    return UpdateControl.noUpdate();
+    return UpdateControl.updateStatus(resource).rescheduleAfter(3, TimeUnit.SECONDS);
   }
 }

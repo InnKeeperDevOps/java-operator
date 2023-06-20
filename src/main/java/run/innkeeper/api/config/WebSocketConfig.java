@@ -16,6 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 import run.innkeeper.api.services.WSSessionStorage;
 import run.innkeeper.utilities.Logging;
 
@@ -31,33 +32,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint("/stomp");
+    registry.addEndpoint("/stomp").setAllowedOrigins( "http://localhost:3000").withSockJS().setSessionCookieNeeded(false);
   }
 
-  @Override
-  public void configureClientInboundChannel(ChannelRegistration registration) {
-    registration.interceptors(new ChannelInterceptor(){
-      @Override
-      public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor =
-            MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        return ChannelInterceptor.super.postReceive(message, channel);
-      }
-
-      @Override
-      public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor =
-            MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-
-
-        if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-
-        }
-        return message;
-      }
-    });
-
-  }
 
   @Bean
   public WebMvcConfigurer corsConfigurer() {
@@ -68,7 +45,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
             .allowCredentials(true)
             .allowedOrigins("https://www.piesocket.com", "http://localhost:8081", "http://localhost:3000")
             .allowedHeaders("*")
-            .allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH")
+            .allowedMethods("*")
             .maxAge(3600);
 
       }

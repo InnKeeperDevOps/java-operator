@@ -3,6 +3,7 @@ package run.innkeeper.controllers;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import run.innkeeper.buses.GitBus;
 import run.innkeeper.events.actions.builds.CheckGitBuild;
+import run.innkeeper.events.actions.builds.FailedBuild;
 import run.innkeeper.events.actions.builds.MonitorBuild;
 import run.innkeeper.events.actions.builds.MonitorGit;
 import run.innkeeper.events.actions.builds.StartBuild;
@@ -24,102 +25,121 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class BuildController {
-    K8sService k8sService = K8sService.get();
+public class BuildController{
+  K8sService k8sService = K8sService.get();
 
-    @Trigger(BuildFinished.class)
-    public void buildFinished(BuildFinished event) {
-        if (event != null) {
-            Logging.debug("WOOOT " + event.getBuild().getMetadata().getName());
-        }
+  @Trigger(BuildFinished.class)
+  public void buildFinished(BuildFinished event) {
+    if (event != null) {
+      Logging.debug("WOOOT " + event.getBuild().getMetadata().getName());
     }
+  }
 
-    @Trigger(StartBuild.class)
-    public void startBuild(StartBuild event) {
-        Job job = BuildBus.get().get(event.getBuild().getSpec().getBuildSettings());
-        if (job == null) {
-            BuildBus.get().create(event.getBuild().getSpec().getBuildSettings());
-            event.getBuild().getStatus().setState(BuildState.BUILDING);
-        }
+  @Trigger(StartBuild.class)
+  public void startBuild(StartBuild event) {
+    Job job = BuildBus.get().get(event.getBuild().getSpec().getBuildSettings());
+    if (job == null) {
+      BuildBus.get().create(event.getBuild().getSpec().getBuildSettings());
+      event.getBuild().getStatus().setState(BuildState.BUILDING);
     }
-
-    @Trigger(MonitorBuild.class)
-    public void monitorBuild(MonitorBuild event) {
-        Job job = BuildBus.get().get(event.getBuild().getSpec().getBuildSettings());
-        if (job != null) {
-            if (job.getStatus() != null && job.getStatus().getSucceeded()!=null && job.getStatus().getSucceeded() == 1) {
-
-                String logs = k8sService.logs(job);
-                BuildMonitor.BuildLogParts buildMonitor = BuildMonitor.get(logs);
-                BuildSettings buildSettings = event.getBuild().getSpec().getBuildSettings();
-
-                BuiltContainer builtContainer = new BuiltContainer();
-
-                GitSource gitSource = new GitSource(buildSettings.getGit());
-                gitSource.setCommit(buildMonitor.hash);
-                gitSource.setBranch(buildMonitor.branch);
-                builtContainer.setGitSource(gitSource);
-
-                if( buildSettings.getDocker()!=null )
-                    builtContainer.setDocker(new Docker(buildSettings.getDocker()));
-
-                builtContainer.setPublish(new Publish(buildSettings.getPublish()));
-
-                builtContainer.setNamespace(event.getBuild().getSpec().getBuildSettings().getNamespace());
-                builtContainer.setJobName(job.getMetadata().getName());
-
-                if(event.getBuild().getStatus().getCompleted() == null){
-                    event.getBuild().getStatus().setCompleted(new ArrayList<>());
-                }
-                event.getBuild().getStatus().getCompleted().add(builtContainer);
-                event.getBuild().getStatus().setState(BuildState.WAITING);
-                k8sService.deleteJob(job);
-            } else if (job.getStatus() != null && job.getStatus().getFailed()!=null && job.getStatus().getFailed() == 1) {
-                event.getBuild().getStatus().setState(BuildState.BUILD_FAILED);
-            } else {
-                Logging.debug("waiting for build to complete");
-            }
-        }
+  }
+  @Trigger(FailedBuild.class)
+  public void failedBuild(FailedBuild event) {
+    Job job = BuildBus.get().get(event.getBuild().getSpec().getBuildSettings());
+    if (job != null) {
+      k8sService.deleteJob(job);
     }
+    event.getBuild().getStatus().setState(BuildState.NEED_TO_BUILD);
+  }
+  @Trigger(MonitorBuild.class)
+  public void monitorBuild(MonitorBuild event) {
+    Job job = BuildBus.get().get(event.getBuild().getSpec().getBuildSettings());
+    if (job != null) {
+      if (job.getStatus() != null && job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() == 1) {
 
-    @Trigger(MonitorGit.class)
-    public void monitorGit(MonitorGit event) {
-        Job job = GitBus.get().get(event.getBuild().getSpec().getBuildSettings());
-        if (job != null) {
-            if (job.getStatus()!=null && job.getStatus().getSucceeded()!=null && job.getStatus().getSucceeded() == 1) {
-                String commit = null;
-                Pattern pattern = Pattern.compile("[a-f0-9]{40}");
-                Matcher matcher = pattern.matcher(k8sService.logs(job));
-                while (matcher.find()) {
-                    commit = matcher.group();
-                }
-                String finalCommit = commit;
-                List<BuiltContainer> builtContainers = new ArrayList<>();
-                if (event.getBuild().getStatus().getCompleted() != null) {
-                    builtContainers = event.getBuild().getStatus().getCompleted()
-                        .stream().filter(builtContainer -> builtContainer.getGitSource().getCommit().equals(finalCommit))
-                        .collect(Collectors.toList());
-                }
-                if (builtContainers.size() == 0) {
-                    event.getBuild().getStatus().setState(BuildState.NEED_TO_BUILD);
-                    k8sService.deleteJob(job);
-                } else {
-                    event.getBuild().getStatus().setState(BuildState.WAITING);
-                    k8sService.deleteJob(job);
-                }
-            } else {
-                Logging.debug("waiting for git check to complete");
-            }
-        }
-    }
+        String logs = k8sService.logs(job);
+        BuildMonitor.BuildLogParts buildMonitor = BuildMonitor.get(logs);
+        BuildSettings buildSettings = event.getBuild().getSpec().getBuildSettings();
 
-    @Trigger(CheckGitBuild.class)
-    public void checkGitBuild(CheckGitBuild event) {
-        Job job = GitBus.get().get(event.getBuild().getSpec().getBuildSettings());
-        if (job == null) {
-            job = GitBus.get().create(event.getBuild().getSpec().getBuildSettings());
+        BuiltContainer builtContainer = new BuiltContainer();
+
+        GitSource gitSource = new GitSource(buildSettings.getGit());
+        gitSource.setCommit(buildMonitor.hash);
+        gitSource.setBranch(buildMonitor.branch);
+        builtContainer.setGitSource(gitSource);
+
+        if (buildSettings.getDocker() != null)
+          builtContainer.setDocker(new Docker(buildSettings.getDocker()));
+
+        builtContainer.setPublish(new Publish(buildSettings.getPublish()));
+
+        builtContainer.setNamespace(event.getBuild().getSpec().getBuildSettings().getNamespace());
+        builtContainer.setJobName(job.getMetadata().getName());
+
+        if (event.getBuild().getStatus().getCompleted() == null) {
+          event.getBuild().getStatus().setCompleted(new ArrayList<>());
         }
-        event.getBuild().getStatus().setState(BuildState.GIT_CHECK);
-        event.getBuild().getStatus().setJobName(job.getMetadata().getName());
+        event.getBuild().getStatus().getCompleted().add(builtContainer);
+        event.getBuild().getStatus().setState(BuildState.WAITING);
+        k8sService.deleteJob(job);
+      } else if (job.getStatus() != null && job.getStatus().getFailed() != null && job.getStatus().getFailed() == 1) {
+        event.getBuild().getStatus().setState(BuildState.BUILD_FAILED);
+        Logging.error(event.getBuild().getMetadata().getName()+", FAILED TO BUILD");
+      } else {
+        Logging.debug("waiting for build to complete");
+      }
+    }else{
+      event.getBuild().getStatus().setState(BuildState.NEED_TO_BUILD);
     }
+  }
+
+  @Trigger(MonitorGit.class)
+  public void monitorGit(MonitorGit event) {
+    Job job = GitBus.get().get(event.getBuild().getSpec().getBuildSettings());
+    if (job != null) {
+      if (job.getStatus() != null && job.getStatus().getSucceeded() != null && job.getStatus().getSucceeded() == 1) {
+        String commit = null;
+        String log = k8sService.logs(job);
+        Pattern pattern = Pattern.compile("[a-f0-9]{40}");
+        Matcher matcher = pattern.matcher(log);
+        while (matcher.find()) {
+          commit = matcher.group();
+        }
+        if(commit==null){
+          Logging.error(log);
+          return;
+        }
+        String finalCommit = commit;
+        List<BuiltContainer> builtContainers = new ArrayList<>();
+        if (event.getBuild().getStatus().getCompleted() != null) {
+          builtContainers = event.getBuild().getStatus().getCompleted()
+              .stream().filter(builtContainer -> builtContainer.getGitSource().getCommit().equals(finalCommit))
+              .collect(Collectors.toList());
+        }
+
+        if (builtContainers.size() == 0) {
+          Logging.error(event.getBuild().getMetadata().getName()+","+finalCommit);
+          event.getBuild().getStatus().setState(BuildState.NEED_TO_BUILD);
+          k8sService.deleteJob(job);
+        } else {
+          event.getBuild().getStatus().setState(BuildState.WAITING);
+          k8sService.deleteJob(job);
+        }
+      } else {
+        Logging.debug("waiting for git check to complete");
+      }
+    }else{
+      event.getBuild().getStatus().setState(BuildState.WAITING);
+    }
+  }
+
+  @Trigger(CheckGitBuild.class)
+  public void checkGitBuild(CheckGitBuild event) {
+    Job job = GitBus.get().get(event.getBuild().getSpec().getBuildSettings());
+    if (job == null) {
+      job = GitBus.get().create(event.getBuild().getSpec().getBuildSettings());
+    }
+    event.getBuild().getStatus().setState(BuildState.GIT_CHECK);
+    event.getBuild().getStatus().setJobName(job.getMetadata().getName());
+  }
 }

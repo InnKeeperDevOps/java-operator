@@ -424,7 +424,7 @@ public class GuestController{
   }
 
   /**
-   * Save guest guest dto.
+   * Save guest dto.
    *
    * @param name      the name
    * @param namespace the namespace

@@ -1,8 +1,6 @@
-package run.innkeeper.extensions.istio.dto;
+package run.innkeeper.extensions.gateway.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.fabric8.kubernetes.api.model.PodSpec;
-import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.HTTPRoute;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.HTTPRouteSpec;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.HTTPRouteStatus;
