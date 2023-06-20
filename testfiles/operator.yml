@@ -1,3 +1,9 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cluster-admin-account
+  namespace: default
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -40,9 +46,10 @@ spec:
         - name: java-operator-container
           env:
             - name: GOOGLE_AUTH_ID
-              value: <string>
+              value: "string"
             - name: GOOGLE_AUTH_SECRET
-              value: <string>
+              value: "string"
             - name: DOMAIN_PORT
-              value: "http://127.0.0.1:8080"
+              value: "https://127.0.0.1:8081"
+          imagePullPolicy: Always
           image: ghcr.io/innkeeperdevops/java-operator:main
