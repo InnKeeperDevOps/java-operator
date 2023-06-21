@@ -16,7 +16,7 @@ spring:
             client-id: ${GOOGLE_AUTH_ID}
             client-secret: ${GOOGLE_AUTH_SECRET}
             scope: openid,email,profile
-            redirect-uri: http://${DOMAIN_PORT}/login/oauth2/code/google
+            redirect-uri: ${DOMAIN_PORT}/login/oauth2/code/google
         provider:
           google:
             issuer-uri: https://accounts.google.com

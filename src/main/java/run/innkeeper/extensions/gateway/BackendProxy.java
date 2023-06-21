@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1alpha2.TCPRoute;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1alpha2.TCPRouteBuilder;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.BackendRef;
+import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.BackendRefBuilder;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.Gateway;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.GatewayAddress;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.GatewayBuilder;
 import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.ParentReference;
 
+import io.fabric8.kubernetes.api.model.gatewayapi.v1beta1.RouteGroupKindBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -31,13 +33,9 @@ import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionState;
 import run.innkeeper.v1.simpleExtensions.crd.BackendProxySettings;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -286,20 +284,25 @@ public class BackendProxy implements ExtensionStructure{
     BackendProxySettings backendProxySettings = new BackendProxySettings(simpleExtension);
     return new TCPRouteBuilder()
         .withNewMetadata()
-        .withName(name)
-        .withNamespace(backendProxySettings.getNamespace())
+          .withName(name)
+          .withNamespace(backendProxySettings.getNamespace())
         .endMetadata()
         .withNewSpec()
-        .addNewParentRef()
-        .withName(name + "-gateway")
-        .withSectionName(name)
-        .endParentRef()
-        .addNewRule()
-        .addNewBackendRef()
-        .withName(backendProxySettings.getService())
-        .withPort(backendProxySettings.getServicePort().getIntVal())
-        .endBackendRef()
-        .endRule()
+          .addNewParentRef()
+            .withName(name + "-gateway")
+            .withPort(backendProxySettings.getServicePort().getIntVal())
+            .withSectionName(name)
+          .endParentRef()
+          .addNewRule()
+            .addToBackendRefs(
+              new BackendRefBuilder()
+                .withName(backendProxySettings.getService())
+                .withPort(backendProxySettings.getServicePort().getIntVal())
+                .withKind("Service")
+                .withNamespace(backendProxySettings.getNamespace())
+                .build()
+            )
+          .endRule()
         .endSpec()
         .build();
   }
@@ -309,19 +312,16 @@ public class BackendProxy implements ExtensionStructure{
     BackendProxySettings backendProxySettings = new BackendProxySettings(simpleExtension);
     return new GatewayBuilder()
         .withNewMetadata()
-        .withName(name + "-gateway")
-        .withNamespace(backendProxySettings.getNamespace())
+          .withName(name + "-gateway")
+          .withNamespace(backendProxySettings.getNamespace())
         .endMetadata()
         .withNewSpec()
-        .withGatewayClassName("istio")
-        .addNewListener()
-        .withName(name)
-        .withProtocol("TCP")
-        .withPort(backendProxySettings.getServicePort().getIntVal())
-        .withNewAllowedRoutes()
-        .addNewKind("gateway.networking.k8s.io", "TCPRoute")
-        .endAllowedRoutes()
-        .endListener()
+          .withGatewayClassName("istio")
+          .addNewListener()
+            .withName(name)
+            .withProtocol("TCP")
+            .withPort(backendProxySettings.getServicePort().getIntVal())
+          .endListener()
         .endSpec()
         .build();
   }
