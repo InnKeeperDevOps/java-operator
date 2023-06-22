@@ -2,4 +2,5 @@
 /build
 .gradle
 /testfiles/mcbans/*
+/testfiles/operator.yml
 authcreds.txt

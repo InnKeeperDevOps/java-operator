@@ -46,10 +46,52 @@ spec:
         - name: java-operator-container
           env:
             - name: GOOGLE_AUTH_ID
-              value: "string"
+              value: "<string>"
             - name: GOOGLE_AUTH_SECRET
-              value: "string"
+              value: "<string>"
             - name: DOMAIN_PORT
-              value: "https://127.0.0.1:8081"
+              value: "https://<string>"
           imagePullPolicy: Always
           image: ghcr.io/innkeeperdevops/java-operator:main
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: java-operator
+spec:
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+  selector:
+    app: java-operator
+  type: ClusterIP
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: java-operator
+spec:
+  gatewayClassName: istio
+  listeners:  # Use GatewayClass defaults for listener definition.
+    - name: http
+      protocol: HTTP
+      port: 8081
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: java-operator
+spec:
+  parentRefs:
+    - name: java-operator
+  hostnames:
+    - "<string>"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: java-operator
+          port: 8081
