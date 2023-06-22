@@ -164,6 +164,7 @@ public class BackendProxy implements ExtensionStructure{
   public SimpleExtensionState create(SimpleExtension simpleExtension) {
     Gateway gatewayNew = this.buildGateway(simpleExtension);
     k8sService.getClient().resource(gatewayNew).create();
+
     return null;
   }
 
@@ -186,7 +187,19 @@ public class BackendProxy implements ExtensionStructure{
       tcpRouteOld.setSpec(tcpRouteNew.getSpec());
       k8sService.getClient().resource(tcpRouteNew).update();
     }
+    forceRefreshBP(simpleExtension);
     return SimpleExtensionState.UP_TO_DATE;
+  }
+
+  public void forceRefreshBP(SimpleExtension simpleExtension){
+    try {
+      this.deleteBridge(simpleExtension);
+      Thread.sleep(2000);
+      this.createBridge(simpleExtension);
+    } catch (URISyntaxException | IOException | InterruptedException | NoSuchAlgorithmException | KeyStoreException |
+             KeyManagementException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -203,9 +216,7 @@ public class BackendProxy implements ExtensionStructure{
                   bridgeDetailDTO.getPub().getPort() != backendProxySettings.getPort().getIntVal() ||
                   !bridgeDetailDTO.getPub().getAddress().equals(backendProxySettings.getIp())
           ) {
-            this.deleteBridge(simpleExtension);
-            Thread.sleep(2000);
-            this.createBridge(simpleExtension);
+            forceRefreshBP(simpleExtension);
           } else {
             Logging.info("Nothing changed!");
           }
