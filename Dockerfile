@@ -8,7 +8,7 @@ RUN ls /gradle
 
 RUN ./gradlew build
 
-FROM docker.io/openjdk:19-oraclelinux8 as runner
+FROM docker.io/openjdk:19-oraclelinux8
 
 COPY --from=builder /build/distributions/innkeeper-1.0.zip /
 

@@ -87,7 +87,7 @@ public class K8sService{
       }
     });
     missing.forEach((crdName, clazz) -> {
-      Logging.info("Creating " + crdName + " into the k8s cluster.");
+      Logging.info("Applying " + crdName + " to the k8s cluster.");
       this.client
           .apiextensions()
           .v1()
