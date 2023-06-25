@@ -32,7 +32,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint("/stomp").setAllowedOrigins( "http://localhost:3000").withSockJS().setSessionCookieNeeded(false);
+    registry.addEndpoint("/oauth/stomp").setAllowedOrigins( "http://localhost:3000").withSockJS().setSessionCookieNeeded(false);
   }
 
 

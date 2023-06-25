@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * The type Pod controller.
  */
 @RestController
-@RequestMapping("/pod")
+@RequestMapping({"/oauth/pod", "/token/pod"})
 public class PodController {
   /**
    * The K 8 s service.

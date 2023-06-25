@@ -50,7 +50,9 @@ spec:
             - name: GOOGLE_AUTH_SECRET
               value: "<string>"
             - name: DOMAIN_PORT
-              value: "https://<string>"
+              value: "https://<domain>"
+            - name: BEARER_TOKEN
+              value: "<string>"
           imagePullPolicy: Always
           image: ghcr.io/innkeeperdevops/java-operator:main
 ---
@@ -86,7 +88,7 @@ spec:
   parentRefs:
     - name: java-operator
   hostnames:
-    - "<string>"
+    - "<domain>"
   rules:
     - matches:
         - path:

@@ -14,7 +14,7 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     if(System.getenv("NO_AUTH")==null) {
-      http.authorizeRequests().anyRequest().authenticated()
+      http.authorizeRequests().requestMatchers("/oauth/**").authenticated()
           .and()
           .oauth2Login()
           .and()

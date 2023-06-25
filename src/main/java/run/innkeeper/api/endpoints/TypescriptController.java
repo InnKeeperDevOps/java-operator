@@ -18,7 +18,7 @@ import run.innkeeper.api.dto.SimpleExtensionDTO;
 import run.innkeeper.utilities.Logging;
 
 @RestController
-@RequestMapping("/ts")
+@RequestMapping({"/oauth/ts", "/token/ts"})
 public class TypescriptController{
   TypeScriptGenerator typeScriptGenerator;
 

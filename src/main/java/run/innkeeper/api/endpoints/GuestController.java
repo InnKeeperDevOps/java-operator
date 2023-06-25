@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * The type Guest controller.
  */
 @RestController
-@RequestMapping("/guest")
+@RequestMapping({"/oauth/guest", "/token/guest"})
 public class GuestController{
   /**
    * The Deployment bus.

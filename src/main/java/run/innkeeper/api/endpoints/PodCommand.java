@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
 
 @RestController
 @Controller
-@RequestMapping("/pod")
+@RequestMapping({"/oauth/pod", "/token/pod"})
 public class PodCommand{
   public static final char CTRL_C = '\u0003';
 

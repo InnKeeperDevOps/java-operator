@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/build")
+@RequestMapping({"/oauth/build", "/token/build"})
 public class BuildController{
   K8sService k8sService = K8sService.get();
   @GetMapping("/")

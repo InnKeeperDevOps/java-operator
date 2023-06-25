@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/ws")
+@RequestMapping({"/oauth/ws", "/token/ws"})
 public class WebSocketAuthToken{
 
   @Autowired

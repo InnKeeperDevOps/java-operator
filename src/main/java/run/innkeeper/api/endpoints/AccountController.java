@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/account")
+@RequestMapping({"/oauth/account", "/token/account"})
 public class AccountController{
   AccountService accountService = AccountService.get();
   K8sService k8sService = K8sService.get();

@@ -16,7 +16,7 @@ import run.innkeeper.v1.deployment.crd.Deployment;
  * The type Deployment controller.
  */
 @RestController
-@RequestMapping("/deployment")
+@RequestMapping({"/oauth/deployment", "/token/deployment"})
 public class DeploymentController {
   /**
    * The K 8 s service.
