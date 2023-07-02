@@ -163,7 +163,10 @@ public class BackendProxy implements ExtensionStructure{
   @Override
   public SimpleExtensionState create(SimpleExtension simpleExtension) {
     Gateway gatewayNew = this.buildGateway(simpleExtension);
-    k8sService.getClient().resource(gatewayNew).create();
+    Gateway exists = k8sService.getClient().resource(gatewayNew).get();
+    if(exists==null) {
+      k8sService.getClient().resource(gatewayNew).create();
+    }
 
     return null;
   }

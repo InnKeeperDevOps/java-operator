@@ -51,7 +51,7 @@ public class GuestController{
   @GetMapping("/")
   @UserAuthorized("guest.list")
   public List<GuestDTO> getGuests() {
-    return k8sService.getGuestClient().resources().map(guestResource -> new GuestDTO(guestResource.item())).collect(Collectors.toList());
+    return k8sService.getGuestClient().inAnyNamespace().resources().map(guestResource -> new GuestDTO(guestResource.item())).collect(Collectors.toList());
   }
 
   /**
