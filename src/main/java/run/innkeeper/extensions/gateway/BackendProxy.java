@@ -33,6 +33,7 @@ import run.innkeeper.utilities.Logging;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtension;
 import run.innkeeper.v1.simpleExtensions.crd.SimpleExtensionState;
 import run.innkeeper.v1.simpleExtensions.crd.BackendProxySettings;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -164,8 +165,18 @@ public class BackendProxy implements ExtensionStructure{
   public SimpleExtensionState create(SimpleExtension simpleExtension) {
     Gateway gatewayNew = this.buildGateway(simpleExtension);
     Gateway exists = k8sService.getClient().resource(gatewayNew).get();
-    if(exists==null) {
+    if (exists == null) {
       k8sService.getClient().resource(gatewayNew).create();
+    }
+
+
+    try {
+      BridgeDetailDTO bridgeDetailDTO = this.getBridge(simpleExtension);
+      if (bridgeDetailDTO == null) {
+        this.createBridge(simpleExtension);
+      }
+    } catch (URISyntaxException | IOException | InterruptedException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+      e.printStackTrace();
     }
 
     return null;
@@ -194,13 +205,17 @@ public class BackendProxy implements ExtensionStructure{
     return SimpleExtensionState.UP_TO_DATE;
   }
 
-  public void forceRefreshBP(SimpleExtension simpleExtension){
+  public void forceRefreshBP(SimpleExtension simpleExtension) {
     try {
       this.deleteBridge(simpleExtension);
       Thread.sleep(2000);
       this.createBridge(simpleExtension);
-    } catch (URISyntaxException | IOException | InterruptedException | NoSuchAlgorithmException | KeyStoreException |
-             KeyManagementException e) {
+    } catch (URISyntaxException
+             | IOException
+             | InterruptedException
+             | NoSuchAlgorithmException
+             | KeyStoreException
+             | KeyManagementException e) {
       e.printStackTrace();
     }
   }
@@ -226,8 +241,8 @@ public class BackendProxy implements ExtensionStructure{
         } else {
           this.createBridge(simpleExtension);
         }
-      } catch (URISyntaxException | IOException | InterruptedException | NoSuchAlgorithmException |
-               KeyStoreException e) {
+      } catch (URISyntaxException | IOException | InterruptedException | NoSuchAlgorithmException
+               | KeyStoreException e) {
         e.printStackTrace();
       } catch (KeyManagementException e) {
         throw new RuntimeException(e);
@@ -298,25 +313,25 @@ public class BackendProxy implements ExtensionStructure{
     BackendProxySettings backendProxySettings = new BackendProxySettings(simpleExtension);
     return new TCPRouteBuilder()
         .withNewMetadata()
-          .withName(name)
-          .withNamespace(backendProxySettings.getNamespace())
+        .withName(name)
+        .withNamespace(backendProxySettings.getNamespace())
         .endMetadata()
         .withNewSpec()
-          .addNewParentRef()
-            .withName(name + "-gateway")
-            .withPort(backendProxySettings.getServicePort().getIntVal())
-            .withSectionName(name)
-          .endParentRef()
-          .addNewRule()
-            .addToBackendRefs(
-              new BackendRefBuilder()
+        .addNewParentRef()
+        .withName(name + "-gateway")
+        .withPort(backendProxySettings.getServicePort().getIntVal())
+        .withSectionName(name)
+        .endParentRef()
+        .addNewRule()
+        .addToBackendRefs(
+            new BackendRefBuilder()
                 .withName(backendProxySettings.getService())
                 .withPort(backendProxySettings.getServicePort().getIntVal())
                 .withKind("Service")
                 .withNamespace(backendProxySettings.getNamespace())
                 .build()
-            )
-          .endRule()
+        )
+        .endRule()
         .endSpec()
         .build();
   }
@@ -326,16 +341,16 @@ public class BackendProxy implements ExtensionStructure{
     BackendProxySettings backendProxySettings = new BackendProxySettings(simpleExtension);
     return new GatewayBuilder()
         .withNewMetadata()
-          .withName(name + "-gateway")
-          .withNamespace(backendProxySettings.getNamespace())
+        .withName(name + "-gateway")
+        .withNamespace(backendProxySettings.getNamespace())
         .endMetadata()
         .withNewSpec()
-          .withGatewayClassName("istio")
-          .addNewListener()
-            .withName(name)
-            .withProtocol("TCP")
-            .withPort(backendProxySettings.getServicePort().getIntVal())
-          .endListener()
+        .withGatewayClassName("istio")
+        .addNewListener()
+        .withName(name)
+        .withProtocol("TCP")
+        .withPort(backendProxySettings.getServicePort().getIntVal())
+        .endListener()
         .endSpec()
         .build();
   }
