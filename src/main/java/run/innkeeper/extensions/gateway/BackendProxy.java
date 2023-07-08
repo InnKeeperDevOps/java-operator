@@ -45,7 +45,6 @@ import java.util.Optional;
 
 @Extension("BackendProxy")
 public class BackendProxy implements ExtensionStructure{
-
   K8sService k8sService = K8sService.get();
 
   public String gatewayAddress(SimpleExtension simpleExtension) {
@@ -169,13 +168,19 @@ public class BackendProxy implements ExtensionStructure{
       k8sService.getClient().resource(gatewayNew).create();
     }
 
+    TCPRoute tcpRouteNew = this.buildTCPRoute(simpleExtension);
+    TCPRoute tcpRouteOld = k8sService.getClient().resource(tcpRouteNew).get();
+    if (tcpRouteOld == null) {
+      k8sService.getClient().resource(tcpRouteNew).create();
+    }
 
     try {
       BridgeDetailDTO bridgeDetailDTO = this.getBridge(simpleExtension);
       if (bridgeDetailDTO == null) {
         this.createBridge(simpleExtension);
       }
-    } catch (URISyntaxException | IOException | InterruptedException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+    } catch (URISyntaxException | IOException | InterruptedException | NoSuchAlgorithmException | KeyStoreException |
+             KeyManagementException e) {
       e.printStackTrace();
     }
 
@@ -226,6 +231,7 @@ public class BackendProxy implements ExtensionStructure{
     if (gateway != null) {
       BackendProxySettings backendProxySettings = new BackendProxySettings(simpleExtension);
       try {
+
         BridgeDetailDTO bridgeDetailDTO = this.getBridge(simpleExtension);
         if (bridgeDetailDTO != null) {
           if (
