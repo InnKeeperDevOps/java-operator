@@ -1,7 +1,9 @@
 package run.innkeeper.api.endpoints;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +29,23 @@ public class AccountController{
   @UserAuthorized("user.list")
   public List<AccountDTO> getAccounts() {
     return accountService.getAccounts().stream().map(a -> new AccountDTO(a)).collect(Collectors.toList());
+  }
+
+  @PostMapping("/{name}/")
+  @UserAuthorized("user.create")
+  public AccountDTO createAccount(@PathVariable String name, @RequestBody AccountSpec accountSpec) {
+    Account account = new Account();
+    account.setMetaData("innkeeper", name);
+    account.setSpec(accountSpec);
+    return new AccountDTO(k8sService.getAccountClient().resource(account).create());
+  }
+
+  @DeleteMapping("/{name}/")
+  @UserAuthorized("user.delete")
+  public void deleteAccount(@PathVariable String name) {
+    Account account = new Account();
+    account.setMetaData("innkeeper", name);
+    k8sService.getAccountClient().resource(account).delete();
   }
 
   @GetMapping("/{name}/")

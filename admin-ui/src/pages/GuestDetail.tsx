@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -10,15 +10,21 @@ import {
   Typography,
   CircularProgress,
   Chip,
+  Button,
+  Snackbar,
+  Alert,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import PageHeader from '../components/PageHeader';
 import JsonViewer from '../components/JsonViewer';
+import JsonEditor from '../components/JsonEditor';
 import ResourceTable, { type Column } from '../components/ResourceTable';
 import type { GuestDTO, DeploymentDTO, ServiceDTO, BuildDTO, SimpleExtensionDTO } from '../api/types';
 import { guestApi } from '../api/services';
 
 export default function GuestDetail() {
   const { namespace, name } = useParams<{ namespace: string; name: string }>();
+  const navigate = useNavigate();
   const [guest, setGuest] = useState<GuestDTO | null>(null);
   const [tab, setTab] = useState(0);
   const [deployments, setDeployments] = useState<DeploymentDTO[]>([]);
@@ -26,8 +32,11 @@ export default function GuestDetail() {
   const [builds, setBuilds] = useState<BuildDTO[]>([]);
   const [extensions, setExtensions] = useState<SimpleExtensionDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false, message: '', severity: 'success',
+  });
 
-  useEffect(() => {
+  const load = () => {
     if (!namespace || !name) return;
     Promise.all([
       guestApi.get(namespace, name),
@@ -42,7 +51,27 @@ export default function GuestDetail() {
       setBuilds(b);
       setExtensions(e);
     }).catch(console.error).finally(() => setLoading(false));
-  }, [namespace, name]);
+  };
+
+  useEffect(() => { load(); }, [namespace, name]);
+
+  const handleSaveSpec = async (data: unknown) => {
+    if (!namespace || !name) return;
+    const updated = await guestApi.update(namespace, name, data as Record<string, unknown>);
+    setGuest(updated);
+    setSnackbar({ open: true, message: 'Spec saved successfully', severity: 'success' });
+  };
+
+  const handleDelete = async () => {
+    if (!namespace || !name) return;
+    if (!confirm(`Delete guest "${name}" in namespace "${namespace}"?`)) return;
+    try {
+      await guestApi.delete(namespace, name);
+      navigate('/guests');
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to delete guest', severity: 'error' });
+    }
+  };
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>;
   if (!guest) return <Typography color="error">Guest not found</Typography>;
@@ -66,42 +95,47 @@ export default function GuestDetail() {
 
   return (
     <>
-      <PageHeader
-        title={guest.meta.name}
-        subtitle={`Namespace: ${guest.meta.namespace}`}
-        breadcrumbs={[{ label: 'Guests', to: '/guests' }, { label: guest.meta.name }]}
-      />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <PageHeader
+          title={guest.meta.name}
+          subtitle={`Namespace: ${guest.meta.namespace}`}
+          breadcrumbs={[{ label: 'Guests', to: '/guests' }, { label: guest.meta.name }]}
+        />
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<DeleteIcon />}
+          onClick={handleDelete}
+          sx={{ mt: 1 }}
+        >
+          Delete
+        </Button>
+      </Box>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">Name</Typography>
-              <Typography fontWeight={600}>{guest.meta.name}</Typography>
-            </CardContent>
-          </Card>
+          <Card><CardContent>
+            <Typography variant="body2" color="text.secondary">Name</Typography>
+            <Typography fontWeight={600}>{guest.meta.name}</Typography>
+          </CardContent></Card>
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">Namespace</Typography>
-              <Typography fontWeight={600}>{guest.meta.namespace}</Typography>
-            </CardContent>
-          </Card>
+          <Card><CardContent>
+            <Typography variant="body2" color="text.secondary">Namespace</Typography>
+            <Typography fontWeight={600}>{guest.meta.namespace}</Typography>
+          </CardContent></Card>
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">UUID</Typography>
-              <Typography fontWeight={600} sx={{ fontFamily: 'monospace', fontSize: 13 }}>{guest.meta.uuid}</Typography>
-            </CardContent>
-          </Card>
+          <Card><CardContent>
+            <Typography variant="body2" color="text.secondary">UUID</Typography>
+            <Typography fontWeight={600} sx={{ fontFamily: 'monospace', fontSize: 13 }}>{guest.meta.uuid}</Typography>
+          </CardContent></Card>
         </Grid>
       </Grid>
 
       <Card>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
-          <Tab label="Spec" />
+          <Tab label="Spec (Edit)" />
           <Tab label="Status" />
           <Tab label={`Deployments (${deployments.length})`} />
           <Tab label={`Services (${services.length})`} />
@@ -109,14 +143,44 @@ export default function GuestDetail() {
           <Tab label={`Extensions (${extensions.length})`} />
         </Tabs>
         <Box sx={{ p: 2 }}>
-          {tab === 0 && <JsonViewer data={guest.spec} />}
+          {tab === 0 && <JsonEditor data={guest.spec} onSave={handleSaveSpec} />}
           {tab === 1 && <JsonViewer data={guest.status} />}
-          {tab === 2 && <ResourceTable columns={depColumns} rows={deployments} getRowKey={(r) => `${r.meta.namespace}/${r.meta.name}`} emptyMessage="No deployments" />}
-          {tab === 3 && <ResourceTable columns={svcColumns} rows={services} getRowKey={(r) => `${r.meta.namespace}/${r.meta.name}`} emptyMessage="No services" />}
+          {tab === 2 && (
+            <ResourceTable
+              columns={depColumns}
+              rows={deployments}
+              getRowKey={(r) => `${r.meta.namespace}/${r.meta.name}`}
+              onRowClick={(r) => navigate(`/deployments/${r.meta.namespace}/${r.meta.name}`)}
+              emptyMessage="No deployments"
+            />
+          )}
+          {tab === 3 && (
+            <ResourceTable
+              columns={svcColumns}
+              rows={services}
+              getRowKey={(r) => `${r.meta.namespace}/${r.meta.name}`}
+              onRowClick={(r) => navigate(`/services/${r.meta.namespace}/${r.meta.name}`)}
+              emptyMessage="No services"
+            />
+          )}
           {tab === 4 && <ResourceTable columns={buildColumns} rows={builds} getRowKey={(r) => `${r.meta.namespace}/${r.meta.name}`} emptyMessage="No builds" />}
-          {tab === 5 && <ResourceTable columns={extColumns} rows={extensions} getRowKey={(r) => `${r.meta.namespace}/${r.meta.name}`} emptyMessage="No extensions" />}
+          {tab === 5 && (
+            <ResourceTable
+              columns={extColumns}
+              rows={extensions}
+              getRowKey={(r) => `${r.meta.namespace}/${r.meta.name}`}
+              onRowClick={(r) => navigate(`/extensions/${r.meta.namespace}/${r.meta.name}`)}
+              emptyMessage="No extensions"
+            />
+          )}
         </Box>
       </Card>
+
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
+        <Alert severity={snackbar.severity} variant="filled" onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

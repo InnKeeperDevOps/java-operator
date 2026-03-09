@@ -127,3 +127,13 @@ export interface EventLog {
   timestamp?: string;
   [key: string]: unknown;
 }
+
+export interface StatsDTO {
+  guests: number;
+  deployments: number;
+  services: number;
+  pods: number;
+  builds: number;
+  extensions: number;
+  accounts: number;
+}

@@ -55,6 +55,41 @@ public class GuestController{
   }
 
   /**
+   * Creates a new guest.
+   *
+   * @param namespace the namespace
+   * @param name      the name
+   * @param guestSpec the guest spec
+   * @return the created guest
+   */
+  @PostMapping("/{namespace}/{name}/")
+  @UserAuthorized("guest.create")
+  public GuestDTO createGuest(
+      @PathVariable("namespace") String namespace,
+      @PathVariable("name") String name,
+      @RequestBody GuestSpec guestSpec
+  ) {
+    Guest guest = new Guest().setMetaData(namespace, name);
+    guest.setSpec(guestSpec);
+    return new GuestDTO(k8sService.getGuestClient().resource(guest).create());
+  }
+
+  /**
+   * Deletes a guest.
+   *
+   * @param name      the name
+   * @param namespace the namespace
+   */
+  @DeleteMapping("/{namespace}/{name}/")
+  @UserAuthorized("guest.delete")
+  public void deleteGuest(
+      @PathVariable("name") String name,
+      @PathVariable("namespace") String namespace
+  ) {
+    k8sService.getGuestClient().resource(new Guest().setMetaData(namespace, name)).delete();
+  }
+
+  /**
    * Gets guest.
    *
    * @param name      the name

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Chip } from '@mui/material';
+import { Chip, Button, Box } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import PageHeader from '../components/PageHeader';
 import ResourceTable, { type Column } from '../components/ResourceTable';
+import CreateResourceDialog from '../components/CreateResourceDialog';
 import type { GuestDTO } from '../api/types';
 import { guestApi } from '../api/services';
 
@@ -32,18 +34,39 @@ const columns: Column<GuestDTO>[] = [
   },
 ];
 
+const defaultGuestSpec = {
+  builds: [],
+  deployments: [],
+  services: [],
+  ext: [],
+};
+
 export default function GuestList() {
   const [guests, setGuests] = useState<GuestDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [createOpen, setCreateOpen] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
     guestApi.list().then(setGuests).catch(console.error).finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleCreate = async (data: { name: string; namespace: string; spec: Record<string, unknown> }) => {
+    await guestApi.create(data.namespace, data.name, data.spec);
+    load();
+  };
 
   return (
     <>
-      <PageHeader title="Guests" subtitle={`${guests.length} guests`} />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <PageHeader title="Guests" subtitle={`${guests.length} guests`} />
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreateOpen(true)} sx={{ mt: 1 }}>
+          Create Guest
+        </Button>
+      </Box>
       <ResourceTable
         columns={columns}
         rows={guests}
@@ -51,6 +74,13 @@ export default function GuestList() {
         getRowKey={(r) => `${r.meta.namespace}/${r.meta.name}`}
         onRowClick={(r) => navigate(`/guests/${r.meta.namespace}/${r.meta.name}`)}
         emptyMessage="No guests found"
+      />
+      <CreateResourceDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSubmit={handleCreate}
+        title="Create Guest"
+        specTemplate={defaultGuestSpec}
       />
     </>
   );

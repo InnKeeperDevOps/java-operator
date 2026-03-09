@@ -9,19 +9,12 @@ import ExtensionIcon from '@mui/icons-material/Extension';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
-import {
-  guestApi,
-  deploymentApi,
-  serviceApi,
-  podApi,
-  buildApi,
-  extensionApi,
-  accountApi,
-} from '../api/services';
+import { statsApi } from '../api/services';
+import type { StatsDTO } from '../api/types';
 
 interface StatCard {
   label: string;
-  count: number | null;
+  key: keyof StatsDTO;
   icon: React.ReactNode;
   color: string;
   path: string;
@@ -29,47 +22,25 @@ interface StatCard {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<Record<string, number | null>>({
-    guests: null,
-    deployments: null,
-    services: null,
-    pods: null,
-    builds: null,
-    extensions: null,
-    accounts: null,
-  });
+  const [stats, setStats] = useState<StatsDTO | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
-      const results = await Promise.allSettled([
-        guestApi.list(),
-        deploymentApi.list(),
-        serviceApi.list(),
-        podApi.list(),
-        buildApi.list(),
-        extensionApi.list(),
-        accountApi.list(),
-      ]);
-      const keys = ['guests', 'deployments', 'services', 'pods', 'builds', 'extensions', 'accounts'];
-      const newStats: Record<string, number | null> = {};
-      results.forEach((r, i) => {
-        newStats[keys[i]] = r.status === 'fulfilled' ? r.value.length : null;
-      });
-      setStats(newStats);
-      setLoading(false);
-    };
-    load();
+    statsApi.get()
+      .then(setStats)
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
   }, []);
 
   const cards: StatCard[] = [
-    { label: 'Guests', count: stats.guests, icon: <PeopleIcon sx={{ fontSize: 32 }} />, color: '#6C9BF2', path: '/guests' },
-    { label: 'Deployments', count: stats.deployments, icon: <CloudIcon sx={{ fontSize: 32 }} />, color: '#4DD0E1', path: '/deployments' },
-    { label: 'Services', count: stats.services, icon: <DnsIcon sx={{ fontSize: 32 }} />, color: '#66BB6A', path: '/services' },
-    { label: 'Pods', count: stats.pods, icon: <StorageIcon sx={{ fontSize: 32 }} />, color: '#FFA726', path: '/pods' },
-    { label: 'Builds', count: stats.builds, icon: <BuildIcon sx={{ fontSize: 32 }} />, color: '#AB47BC', path: '/builds' },
-    { label: 'Extensions', count: stats.extensions, icon: <ExtensionIcon sx={{ fontSize: 32 }} />, color: '#EF5350', path: '/extensions' },
-    { label: 'Accounts', count: stats.accounts, icon: <AccountCircleIcon sx={{ fontSize: 32 }} />, color: '#42A5F5', path: '/accounts' },
+    { label: 'Guests', key: 'guests', icon: <PeopleIcon sx={{ fontSize: 32 }} />, color: '#6C9BF2', path: '/guests' },
+    { label: 'Deployments', key: 'deployments', icon: <CloudIcon sx={{ fontSize: 32 }} />, color: '#4DD0E1', path: '/deployments' },
+    { label: 'Services', key: 'services', icon: <DnsIcon sx={{ fontSize: 32 }} />, color: '#66BB6A', path: '/services' },
+    { label: 'Pods', key: 'pods', icon: <StorageIcon sx={{ fontSize: 32 }} />, color: '#FFA726', path: '/pods' },
+    { label: 'Builds', key: 'builds', icon: <BuildIcon sx={{ fontSize: 32 }} />, color: '#AB47BC', path: '/builds' },
+    { label: 'Extensions', key: 'extensions', icon: <ExtensionIcon sx={{ fontSize: 32 }} />, color: '#EF5350', path: '/extensions' },
+    { label: 'Accounts', key: 'accounts', icon: <AccountCircleIcon sx={{ fontSize: 32 }} />, color: '#42A5F5', path: '/accounts' },
   ];
 
   return (
@@ -101,7 +72,7 @@ export default function Dashboard() {
                       <CircularProgress size={28} />
                     ) : (
                       <Typography variant="h4" sx={{ color: card.color }}>
-                        {card.count ?? '--'}
+                        {error ? '--' : (stats?.[card.key] ?? '--')}
                       </Typography>
                     )}
                   </Box>

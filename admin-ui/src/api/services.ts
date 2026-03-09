@@ -11,15 +11,25 @@ import type {
   Container,
   K8sDeploymentDTO,
   EventLog,
+  StatsDTO,
 } from './types';
+
+// ── Stats ────────────────────────────────────────────────
+export const statsApi = {
+  get: () => api.get<StatsDTO>(`${PREFIX}/stats/`).then((r) => r.data),
+};
 
 // ── Accounts ──────────────────────────────────────────────
 export const accountApi = {
   list: () => api.get<AccountDTO[]>(`${PREFIX}/account/`).then((r) => r.data),
   get: (name: string) =>
     api.get<AccountDTO>(`${PREFIX}/account/${name}/`).then((r) => r.data),
+  create: (name: string, spec: Record<string, unknown>) =>
+    api.post<AccountDTO>(`${PREFIX}/account/${name}/`, spec).then((r) => r.data),
   update: (name: string, spec: Record<string, unknown>) =>
     api.put<AccountDTO>(`${PREFIX}/account/${name}/`, spec).then((r) => r.data),
+  delete: (name: string) =>
+    api.delete(`${PREFIX}/account/${name}/`).then((r) => r.data),
   grant: (name: string, permission: string) =>
     api.put<AccountDTO>(`${PREFIX}/account/${name}/grant/${permission}`).then((r) => r.data),
   revoke: (name: string, permission: string) =>
@@ -31,16 +41,28 @@ export const guestApi = {
   list: () => api.get<GuestDTO[]>(`${PREFIX}/guest/`).then((r) => r.data),
   get: (ns: string, name: string) =>
     api.get<GuestDTO>(`${PREFIX}/guest/${ns}/${name}/`).then((r) => r.data),
+  create: (ns: string, name: string, spec: Record<string, unknown>) =>
+    api.post<GuestDTO>(`${PREFIX}/guest/${ns}/${name}/`, spec).then((r) => r.data),
   update: (ns: string, name: string, spec: Record<string, unknown>) =>
     api.put<GuestDTO>(`${PREFIX}/guest/${ns}/${name}/`, spec).then((r) => r.data),
+  delete: (ns: string, name: string) =>
+    api.delete(`${PREFIX}/guest/${ns}/${name}/`).then((r) => r.data),
   deployments: (ns: string, name: string) =>
     api.get<DeploymentDTO[]>(`${PREFIX}/guest/${ns}/${name}/deployments`).then((r) => r.data),
+  saveDeployments: (ns: string, name: string, settings: Record<string, unknown>[]) =>
+    api.put<DeploymentDTO[]>(`${PREFIX}/guest/${ns}/${name}/deployments`, settings).then((r) => r.data),
   services: (ns: string, name: string) =>
     api.get<ServiceDTO[]>(`${PREFIX}/guest/${ns}/${name}/services`).then((r) => r.data),
+  saveServices: (ns: string, name: string, settings: Record<string, unknown>[]) =>
+    api.put<ServiceDTO[]>(`${PREFIX}/guest/${ns}/${name}/services`, settings).then((r) => r.data),
   builds: (ns: string, name: string) =>
     api.get<BuildDTO[]>(`${PREFIX}/guest/${ns}/${name}/builds`).then((r) => r.data),
+  saveBuilds: (ns: string, name: string, settings: Record<string, unknown>[]) =>
+    api.put<BuildDTO[]>(`${PREFIX}/guest/${ns}/${name}/builds`, settings).then((r) => r.data),
   extensions: (ns: string, name: string) =>
     api.get<SimpleExtensionDTO[]>(`${PREFIX}/guest/${ns}/${name}/extensions`).then((r) => r.data),
+  saveExtensions: (ns: string, name: string, specs: Record<string, unknown>[]) =>
+    api.put<SimpleExtensionDTO[]>(`${PREFIX}/guest/${ns}/${name}/extensions`, specs).then((r) => r.data),
   k8sDeployments: (ns: string, name: string) =>
     api.get<K8sDeploymentDTO[]>(`${PREFIX}/guest/${ns}/${name}/k8s/deployments`).then((r) => r.data),
 };

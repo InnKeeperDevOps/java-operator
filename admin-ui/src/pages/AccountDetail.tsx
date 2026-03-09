@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -20,11 +20,13 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PageHeader from '../components/PageHeader';
 import JsonViewer from '../components/JsonViewer';
+import JsonEditor from '../components/JsonEditor';
 import type { AccountDTO } from '../api/types';
 import { accountApi } from '../api/services';
 
 export default function AccountDetail() {
   const { name } = useParams<{ name: string }>();
+  const navigate = useNavigate();
   const [account, setAccount] = useState<AccountDTO | null>(null);
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,24 @@ export default function AccountDetail() {
     }
   };
 
+  const handleSaveSpec = async (data: unknown) => {
+    if (!name) return;
+    const updated = await accountApi.update(name, data as Record<string, unknown>);
+    setAccount(updated);
+    setSnackbar({ open: true, message: 'Spec saved successfully', severity: 'success' });
+  };
+
+  const handleDelete = async () => {
+    if (!name) return;
+    if (!confirm(`Delete account "${name}"?`)) return;
+    try {
+      await accountApi.delete(name);
+      navigate('/accounts');
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to delete account', severity: 'error' });
+    }
+  };
+
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>;
   if (!account) return <Typography color="error">Account not found</Typography>;
 
@@ -70,10 +90,15 @@ export default function AccountDetail() {
 
   return (
     <>
-      <PageHeader
-        title={account.meta.name}
-        breadcrumbs={[{ label: 'Accounts', to: '/accounts' }, { label: account.meta.name }]}
-      />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <PageHeader
+          title={account.meta.name}
+          breadcrumbs={[{ label: 'Accounts', to: '/accounts' }, { label: account.meta.name }]}
+        />
+        <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={handleDelete} sx={{ mt: 1 }}>
+          Delete
+        </Button>
+      </Box>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -93,7 +118,7 @@ export default function AccountDetail() {
       <Card>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
           <Tab label="Permissions" />
-          <Tab label="Spec" />
+          <Tab label="Spec (Edit)" />
           <Tab label="Status" />
         </Tabs>
         <Box sx={{ p: 2 }}>
@@ -130,7 +155,7 @@ export default function AccountDetail() {
               </Box>
             </Box>
           )}
-          {tab === 1 && <JsonViewer data={account.spec} />}
+          {tab === 1 && <JsonEditor data={account.spec} onSave={handleSaveSpec} />}
           {tab === 2 && <JsonViewer data={account.status} />}
         </Box>
       </Card>
