@@ -50,17 +50,19 @@ export default function ResourceTable<T>({
     }
   };
 
+  const safeRows = Array.isArray(rows) ? rows : [];
+
   const sorted = useMemo(() => {
-    if (!orderBy) return rows;
+    if (!orderBy) return safeRows;
     const col = columns.find((c) => c.id === orderBy);
-    if (!col?.getValue) return rows;
-    return [...rows].sort((a, b) => {
+    if (!col?.getValue) return safeRows;
+    return [...safeRows].sort((a, b) => {
       const va = col.getValue!(a);
       const vb = col.getValue!(b);
       const cmp = va < vb ? -1 : va > vb ? 1 : 0;
       return order === 'asc' ? cmp : -cmp;
     });
-  }, [rows, orderBy, order, columns]);
+  }, [safeRows, orderBy, order, columns]);
 
   if (loading) {
     return (
