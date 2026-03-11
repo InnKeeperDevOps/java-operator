@@ -30,7 +30,25 @@ public class AdminUIFileSystem{
   ObjectMapper objectMapper = new ObjectMapper();
   String commit = "";
 
-  @Scheduled(fixedRate = 4000)
+  /**
+   * When GITHUB_WEBHOOK_SECRET is set, polling runs as a fallback every 5 minutes.
+   * The webhook endpoint can call refreshFromWebhook() for instant updates.
+   * Without webhooks configured, polls every 4 seconds (original behavior).
+   */
+  private static final long POLL_RATE = System.getenv("GITHUB_WEBHOOK_SECRET") != null ? 300000 : 4000;
+
+  /**
+   * Called by the webhook controller when admin-ui repo receives a push.
+   */
+  public void refreshFromWebhook(String newCommit) throws IOException {
+    if (newCommit != null && !newCommit.equals(this.commit)) {
+      Logging.info("Webhook: updating admin-ui to commit " + newCommit);
+      this.commit = newCommit;
+      this.load();
+    }
+  }
+
+  @Scheduled(fixedRateString = "#{T(java.lang.System).getenv('GITHUB_WEBHOOK_SECRET') != null ? 300000 : 4000}")
   public void grabNewestUI() throws IOException, InterruptedException {
     LatestCommitCheck latestCommitCheck = LatestCommitCheck.newInstance("admin-ui");
     if (latestCommitCheck.get() == null) {

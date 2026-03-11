@@ -23,6 +23,14 @@ public class BuildReconciler implements Reconciler<Build>, Cleaner<Build> {
     BuildBus buildBus = BuildBus.get();
     GitBus gitBus = GitBus.get();
 
+    /**
+     * When GITHUB_WEBHOOK_SECRET is set, webhooks are the primary trigger mechanism.
+     * Polling still runs as a fallback but at a much longer interval (5 minutes)
+     * to catch any missed webhook events. Without webhooks, polls every 3 seconds.
+     */
+    private static final boolean WEBHOOKS_ENABLED = System.getenv("GITHUB_WEBHOOK_SECRET") != null;
+    private static final long POLL_INTERVAL_SECONDS = WEBHOOKS_ENABLED ? 300 : 3;
+
     @Override
     public UpdateControl<Build> reconcile(Build build, Context<Build> context) throws Exception {
         Logging.debug("================== BUILD RECONCILE =========================");
@@ -38,7 +46,7 @@ public class BuildReconciler implements Reconciler<Build>, Cleaner<Build> {
                 case BUILD_FAILED -> eventBus.get().fire(new FailedBuild(build));
             }
         }
-        return UpdateControl.patchStatus(build).rescheduleAfter(3, TimeUnit.SECONDS);
+        return UpdateControl.patchStatus(build).rescheduleAfter(POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
     // Return the changed resource, so it gets updated. See javadoc for details.
 

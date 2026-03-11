@@ -7,6 +7,7 @@ import run.innkeeper.events.actions.builds.FailedBuild;
 import run.innkeeper.events.actions.builds.MonitorBuild;
 import run.innkeeper.events.actions.builds.MonitorGit;
 import run.innkeeper.events.actions.builds.StartBuild;
+import run.innkeeper.events.actions.builds.WebhookBuildTrigger;
 import run.innkeeper.events.builds.BuildFinished;
 import run.innkeeper.events.structure.Trigger;
 import run.innkeeper.services.K8sService;
@@ -131,6 +132,14 @@ public class BuildController{
     }else{
       event.getBuild().getStatus().setState(BuildState.WAITING);
     }
+  }
+
+  @Trigger(WebhookBuildTrigger.class)
+  public void webhookBuildTrigger(WebhookBuildTrigger event) {
+    // Webhook provides the commit directly - skip git polling entirely
+    Logging.info("Webhook triggered build for " + event.getBuild().getMetadata().getName()
+        + " commit=" + event.getCommit() + " branch=" + event.getBranch());
+    event.getBuild().getStatus().setState(BuildState.NEED_TO_BUILD);
   }
 
   @Trigger(CheckGitBuild.class)
